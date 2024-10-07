@@ -66,6 +66,7 @@ public class SignInView {
         descriptionArea.setLineWrap(true);
         descriptionArea.setWrapStyleWord(true);
 
+
         JLabel attach_Description = new JLabel();
         attach_Description.setBackground(Color.DARK_GRAY);
         attach_Description.setOpaque(true);
