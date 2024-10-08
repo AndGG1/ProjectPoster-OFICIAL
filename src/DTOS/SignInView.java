@@ -82,10 +82,12 @@ public class SignInView {
 
 
         //Revalidation Process
+        attach1.setComponentZOrder(scrollPane, 0);
         attach1.revalidate();
         attach1.repaint();
 
 
+        //Icon Label Listeners
         iconLabel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -117,6 +119,43 @@ public class SignInView {
                             //Not handling
                         }
                     }
+                }
+            }
+        });
+        iconLabel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                iconLabel.setBounds(80, 80, 200, 250);
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                iconLabel.setBounds(75, 75, 200, 250);
+            }
+        });
+
+
+
+        //Description Label Listeners
+        final boolean[] flag = {true};
+        descriptionArea.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                scrollPane.setBounds(355, 80, 550, 250);
+
+                if (flag[0]) {
+                    descriptionArea.setText("");
+                    flag[0] = false;
+                }
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                scrollPane.setBounds(350, 75, 550, 250);
+
+                if (descriptionArea.getText().isEmpty() || descriptionArea.getText().isBlank()) {
+                    descriptionArea.setText("Tell me about yourself...");
+                    flag[0] = true;
                 }
             }
         });
