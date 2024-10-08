@@ -17,7 +17,7 @@ public class SignInView {
         JFrame frame = new JFrame();
         frame.setVisible(true);
         frame.setSize(1000, 1000);
-        frame.setResizable(true);
+        frame.setResizable(false);
         frame.setLocationRelativeTo(null);
         frame.setLayout(null);
         frame.getContentPane().setBackground(Color.GRAY);
@@ -35,6 +35,7 @@ public class SignInView {
         attach1.add(attach2);
 
 
+
         //Profile Picture
         JLabel iconLabel = new JLabel();
         iconLabel.setBackground(Color.GRAY);
@@ -46,6 +47,47 @@ public class SignInView {
         iconLabel.setBounds(75, 75, 200, 250);
         attach1.add(iconLabel);
 
+        JLabel attach_Icon = new JLabel();
+        attach_Icon.setBackground(Color.DARK_GRAY);
+        attach_Icon.setOpaque(true);
+        attach_Icon.setBounds(75, 75, 210, 260);
+        attach1.add(attach_Icon);
+
+
+
+        //Description Text Area
+        JTextArea descriptionArea = new JTextArea();
+        descriptionArea.setBackground(Color.GRAY);
+        descriptionArea.setForeground(Color.BLACK);
+        descriptionArea.setFont(new Font("Arial", Font.BOLD, 25));
+        descriptionArea.setOpaque(true);
+        descriptionArea.setText("Tell me about yourself...");
+        descriptionArea.setFocusable(true);
+        descriptionArea.setLineWrap(true);
+        descriptionArea.setWrapStyleWord(true);
+
+
+        JLabel attach_Description = new JLabel();
+        attach_Description.setBackground(Color.DARK_GRAY);
+        attach_Description.setOpaque(true);
+        attach_Description.setBounds(350, 75, 560, 260);
+        attach1.add(attach_Description);
+
+        JScrollPane scrollPane = new JScrollPane(descriptionArea);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPane.setBounds(350, 75, 550, 250);
+        attach1.add(scrollPane);
+
+
+
+        //Revalidation Process
+        attach1.setComponentZOrder(scrollPane, 0);
+        attach1.revalidate();
+        attach1.repaint();
+
+
+        //Icon Label Listeners
         iconLabel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -80,28 +122,43 @@ public class SignInView {
                 }
             }
         });
+        iconLabel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                iconLabel.setBounds(80, 80, 200, 250);
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                iconLabel.setBounds(75, 75, 200, 250);
+            }
+        });
 
 
-        //Description Text Area
-        JTextArea descriptionArea = new JTextArea();
-        descriptionArea.setBackground(Color.GRAY);
-        descriptionArea.setForeground(Color.BLACK);
-        descriptionArea.setFont(new Font("Arial", Font.BOLD, 25));
-        descriptionArea.setOpaque(true);
-        descriptionArea.setText("...");
-        descriptionArea.setFocusable(true);
-        descriptionArea.setLineWrap(true);
-        descriptionArea.setWrapStyleWord(true);
 
-        JScrollPane scrollPane = new JScrollPane(descriptionArea);
-        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        //Description Label Listeners
+        final boolean[] flag = {true};
+        descriptionArea.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                scrollPane.setBounds(355, 80, 550, 250);
 
-        scrollPane.setBounds(350, 75, 550, 250);
-        attach1.add(scrollPane);
+                if (flag[0]) {
+                    descriptionArea.setText("");
+                    flag[0] = false;
+                }
+            }
 
-        attach1.revalidate();
-        attach1.repaint();
+            @Override
+            public void mouseExited(MouseEvent e) {
+                scrollPane.setBounds(350, 75, 550, 250);
+
+                if (descriptionArea.getText().isEmpty() || descriptionArea.getText().isBlank()) {
+                    descriptionArea.setText("Tell me about yourself...");
+                    flag[0] = true;
+                }
+            }
+        });
     }
 
     public class TrapezeLabel extends JLabel {
