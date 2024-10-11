@@ -50,7 +50,7 @@ public class SignInView {
         JLabel attach_Icon = new JLabel();
         attach_Icon.setBackground(Color.DARK_GRAY);
         attach_Icon.setOpaque(true);
-        attach_Icon.setBounds(75, 75, 210, 260);
+        attach_Icon.setBounds(80, 80, 210, 260);
         attach1.add(attach_Icon);
 
 
@@ -70,7 +70,7 @@ public class SignInView {
         JLabel attach_Description = new JLabel();
         attach_Description.setBackground(Color.DARK_GRAY);
         attach_Description.setOpaque(true);
-        attach_Description.setBounds(350, 75, 560, 260);
+        attach_Description.setBounds(355, 80, 560, 260);
         attach1.add(attach_Description);
 
         JScrollPane scrollPane = new JScrollPane(descriptionArea);
@@ -81,8 +81,39 @@ public class SignInView {
 
 
 
+        //Name Container
+        JLabel attach_Name = new JLabel();
+        attach_Name.setBackground(Color.GRAY);
+        attach_Name.setForeground(Color.BLACK);
+        attach_Name.setFont(new Font("Arial", Font.BOLD, 25));
+        attach_Name.setHorizontalAlignment(JLabel.CENTER);
+        attach_Name.setText("NAME:");
+        attach_Name.setOpaque(true);
+        attach_Name.setBounds(25, 400, 200, 50); // Corrected bounds
+        attach1.add(attach_Name);
+
+        JTextField nameField = new JTextField();
+        nameField.setBackground(Color.GRAY);
+        nameField.setForeground(Color.BLACK);
+        nameField.setFont(new Font("Arial", Font.BOLD, 25));
+        nameField.setHorizontalAlignment(JTextField.CENTER);
+        nameField.setOpaque(true);
+        nameField.setText("...");
+        nameField.setBounds(225, 400, 700, 50); // Added bounds for nameField
+        attach1.add(nameField);
+
+        JLabel attach_Name2 = new JLabel();
+        attach_Icon.setBackground(Color.DARK_GRAY);
+        attach_Icon.setOpaque(true);
+        attach_Icon.setBounds(30, 410, 900, 50);
+        attach1.add(attach_Name2);
+
+
+
         //Revalidation Process
         attach1.setComponentZOrder(scrollPane, 0);
+        attach1.setComponentZOrder(nameField, 0);
+        attach1.setComponentZOrder(attach_Name, 0);
         attach1.revalidate();
         attach1.repaint();
 
