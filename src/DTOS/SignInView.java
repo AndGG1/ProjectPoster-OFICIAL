@@ -3,6 +3,8 @@ package DTOS;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
@@ -35,7 +37,6 @@ public class SignInView {
         attach1.add(attach2);
 
 
-
         //Profile Picture
         JLabel iconLabel = new JLabel();
         iconLabel.setBackground(Color.GRAY);
@@ -52,7 +53,6 @@ public class SignInView {
         attach_Icon.setOpaque(true);
         attach_Icon.setBounds(80, 80, 210, 260);
         attach1.add(attach_Icon);
-
 
 
         //Description Text Area
@@ -80,7 +80,6 @@ public class SignInView {
         attach1.add(scrollPane);
 
 
-
         //Name Container
         JLabel attach_Name = new JLabel();
         attach_Name.setBackground(Color.GRAY);
@@ -98,16 +97,15 @@ public class SignInView {
         nameField.setFont(new Font("Arial", Font.BOLD, 25));
         nameField.setHorizontalAlignment(JTextField.CENTER);
         nameField.setOpaque(true);
-        nameField.setText("...");
+        nameField.setText("John");
         nameField.setBounds(225, 400, 700, 50); // Added bounds for nameField
         attach1.add(nameField);
 
         JLabel attach_Name2 = new JLabel();
-        attach_Icon.setBackground(Color.DARK_GRAY);
-        attach_Icon.setOpaque(true);
-        attach_Icon.setBounds(30, 410, 900, 50);
+        attach_Name2.setBackground(Color.DARK_GRAY);
+        attach_Name2.setOpaque(true);
+        attach_Name2.setBounds(30, 410, 900, 50);
         attach1.add(attach_Name2);
-
 
 
         //Revalidation Process
@@ -152,8 +150,7 @@ public class SignInView {
                     }
                 }
             }
-        });
-        iconLabel.addMouseListener(new MouseAdapter() {
+
             @Override
             public void mouseEntered(MouseEvent e) {
                 iconLabel.setBounds(80, 80, 200, 250);
@@ -164,7 +161,6 @@ public class SignInView {
                 iconLabel.setBounds(75, 75, 200, 250);
             }
         });
-
 
 
         //Description Label Listeners
@@ -190,7 +186,44 @@ public class SignInView {
                 }
             }
         });
+
+
+        //Name Field Label Listeners
+        nameField.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                nameField.setBounds(227, 405, 700, 50);
+                attach_Name.setBounds(27, 405, 200, 50);
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                nameField.setBounds(225, 400, 700, 50);
+                attach_Name.setBounds(25, 400, 200, 50);
+            }
+        });
+
+        final boolean[] exampleOn = new boolean[1]; exampleOn[0] = true;
+        nameField.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                if (exampleOn[0]) {
+                    nameField.setText("");
+                    exampleOn[0] = false;
+                }
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                String focus = nameField.getText();
+                if (focus.isEmpty() || focus.isBlank()) {
+                    nameField.setText("John");
+                    exampleOn[0] = true;
+                }
+            }
+        });
     }
+
 
     public class TrapezeLabel extends JLabel {
 
