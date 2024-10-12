@@ -108,6 +108,44 @@ public class SignInView {
         attach1.add(attach_Name2);
 
 
+
+        //Password Container
+        JLabel attach_Pass = new JLabel();
+        attach_Pass.setBackground(Color.GRAY);
+        attach_Pass.setForeground(Color.BLACK);
+        attach_Pass.setFont(new Font("Arial", Font.BOLD, 25));
+        attach_Pass.setHorizontalAlignment(JLabel.CENTER);
+        attach_Pass.setText("PASSWORD:");
+        attach_Pass.setOpaque(true);
+        attach_Pass.setBounds(25, 500, 200, 50); // Corrected bounds
+        attach1.add(attach_Pass);
+
+        JPasswordField passField = new JPasswordField();
+        passField.setBackground(Color.GRAY);
+        passField.setForeground(Color.BLACK);
+        passField.setFont(new Font("Arial", Font.BOLD, 25));
+        passField.setHorizontalAlignment(JTextField.CENTER);
+        passField.setOpaque(true);
+        passField.setText("12345");
+        passField.setBounds(225, 500, 650, 50); // Added bounds for nameField
+        attach1.add(passField);
+
+        JLabel attach_Pass2 = new JLabel();
+        attach_Pass2.setBackground(Color.DARK_GRAY);
+        attach_Pass2.setOpaque(true);
+        attach_Pass2.setBounds(30, 510, 850, 50);
+        attach1.add(attach_Pass2);
+
+        JButton passButton = new JButton(EXTRA.getPassEye());
+        passButton.setBackground(Color.GRAY);
+        passButton.setContentAreaFilled(false);
+        passButton.setBorderPainted(false);
+        passButton.setFocusPainted(false);
+        passButton.setBounds(890, 505, 50, 50);
+        attach1.add(passButton);
+
+
+
         //Revalidation Process
         attach1.setComponentZOrder(scrollPane, 0);
         attach1.setComponentZOrder(nameField, 0);
@@ -203,7 +241,8 @@ public class SignInView {
             }
         });
 
-        final boolean[] exampleOn = new boolean[1]; exampleOn[0] = true;
+        final boolean[] exampleOn = new boolean[1];
+        exampleOn[0] = true;
         nameField.addFocusListener(new FocusAdapter() {
             @Override
             public void focusGained(FocusEvent e) {
@@ -222,7 +261,64 @@ public class SignInView {
                 }
             }
         });
+
+
+
+        //Pass Field Label Listeners
+        passField.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                passField.setBounds(227, 505, 650, 50);
+                attach_Pass.setBounds(27, 505, 200, 50);
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                passField.setBounds(225, 500, 650, 50);
+                attach_Pass.setBounds(25, 500, 200, 50);
+            }
+        });
+
+        final boolean[] exampleOn2 = new boolean[1];
+        exampleOn2[0] = true;
+        passField.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                if (exampleOn2[0]) {
+                    passField.setText("");
+                    passField.setEchoChar('•');
+                    exampleOn2[0] = false;
+                }
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                String focus = passField.getText();
+                if (focus.isEmpty() || focus.isBlank()) {
+                    passField.setText("12345");
+                    passField.setEchoChar((char) 0);
+                    exampleOn2[0] = true;
+                }
+            }
+        });
+
+        final boolean[] isNormalChar = new boolean[1];
+        passButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getButton() != 1) return; //only left-click allowed
+
+                if (!isNormalChar[0]) {
+                    passField.setEchoChar((char) 0);
+                    isNormalChar[0] = true;
+                } else {
+                    passField.setEchoChar('•');
+                    isNormalChar[0] = false;
+                }
+            }
+        });
     }
+
 
 
     public static class TrapezeLabel extends JLabel {
