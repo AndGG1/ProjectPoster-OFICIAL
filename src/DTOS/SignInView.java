@@ -3,6 +3,8 @@ package DTOS;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
@@ -17,7 +19,7 @@ public class SignInView {
         JFrame frame = new JFrame();
         frame.setVisible(true);
         frame.setSize(1000, 1000);
-        frame.setResizable(true);
+        frame.setResizable(false);
         frame.setLocationRelativeTo(null);
         frame.setLayout(null);
         frame.getContentPane().setBackground(Color.GRAY);
@@ -46,6 +48,75 @@ public class SignInView {
         iconLabel.setBounds(75, 75, 200, 250);
         attach1.add(iconLabel);
 
+        JLabel attach_Icon = new JLabel();
+        attach_Icon.setBackground(Color.DARK_GRAY);
+        attach_Icon.setOpaque(true);
+        attach_Icon.setBounds(80, 80, 210, 260);
+        attach1.add(attach_Icon);
+
+
+        //Description Text Area
+        JTextArea descriptionArea = new JTextArea();
+        descriptionArea.setBackground(Color.GRAY);
+        descriptionArea.setForeground(Color.BLACK);
+        descriptionArea.setFont(new Font("Arial", Font.BOLD, 25));
+        descriptionArea.setOpaque(true);
+        descriptionArea.setText("Tell me about yourself...");
+        descriptionArea.setFocusable(true);
+        descriptionArea.setLineWrap(true);
+        descriptionArea.setWrapStyleWord(true);
+
+
+        JLabel attach_Description = new JLabel();
+        attach_Description.setBackground(Color.DARK_GRAY);
+        attach_Description.setOpaque(true);
+        attach_Description.setBounds(355, 80, 560, 260);
+        attach1.add(attach_Description);
+
+        JScrollPane scrollPane = new JScrollPane(descriptionArea);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPane.setBounds(350, 75, 550, 250);
+        attach1.add(scrollPane);
+
+
+        //Name Container
+        JLabel attach_Name = new JLabel();
+        attach_Name.setBackground(Color.GRAY);
+        attach_Name.setForeground(Color.BLACK);
+        attach_Name.setFont(new Font("Arial", Font.BOLD, 25));
+        attach_Name.setHorizontalAlignment(JLabel.CENTER);
+        attach_Name.setText("NAME:");
+        attach_Name.setOpaque(true);
+        attach_Name.setBounds(25, 400, 200, 50); // Corrected bounds
+        attach1.add(attach_Name);
+
+        JTextField nameField = new JTextField();
+        nameField.setBackground(Color.GRAY);
+        nameField.setForeground(Color.BLACK);
+        nameField.setFont(new Font("Arial", Font.BOLD, 25));
+        nameField.setHorizontalAlignment(JTextField.CENTER);
+        nameField.setOpaque(true);
+        nameField.setText("John");
+        nameField.setBounds(225, 400, 700, 50); // Added bounds for nameField
+        attach1.add(nameField);
+
+        JLabel attach_Name2 = new JLabel();
+        attach_Name2.setBackground(Color.DARK_GRAY);
+        attach_Name2.setOpaque(true);
+        attach_Name2.setBounds(30, 410, 900, 50);
+        attach1.add(attach_Name2);
+
+
+        //Revalidation Process
+        attach1.setComponentZOrder(scrollPane, 0);
+        attach1.setComponentZOrder(nameField, 0);
+        attach1.setComponentZOrder(attach_Name, 0);
+        attach1.revalidate();
+        attach1.repaint();
+
+
+        //Icon Label Listeners
         iconLabel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -79,30 +150,80 @@ public class SignInView {
                     }
                 }
             }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                iconLabel.setBounds(80, 80, 200, 250);
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                iconLabel.setBounds(75, 75, 200, 250);
+            }
         });
 
 
-        //Description Text Area
-        JTextArea descriptionArea = new JTextArea();
-        descriptionArea.setBackground(Color.GRAY);
-        descriptionArea.setForeground(Color.BLACK);
-        descriptionArea.setFont(new Font("Arial", Font.BOLD, 25));
-        descriptionArea.setOpaque(true);
-        descriptionArea.setText("...");
-        descriptionArea.setFocusable(true);
-        descriptionArea.setLineWrap(true);
-        descriptionArea.setWrapStyleWord(true);
+        //Description Label Listeners
+        final boolean[] flag = {true};
+        descriptionArea.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                scrollPane.setBounds(355, 80, 550, 250);
 
-        JScrollPane scrollPane = new JScrollPane(descriptionArea);
-        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+                if (flag[0]) {
+                    descriptionArea.setText("");
+                    flag[0] = false;
+                }
+            }
 
-        scrollPane.setBounds(350, 75, 550, 250);
-        attach1.add(scrollPane);
+            @Override
+            public void mouseExited(MouseEvent e) {
+                scrollPane.setBounds(350, 75, 550, 250);
 
-        attach1.revalidate();
-        attach1.repaint();
+                if (descriptionArea.getText().isEmpty() || descriptionArea.getText().isBlank()) {
+                    descriptionArea.setText("Tell me about yourself...");
+                    flag[0] = true;
+                }
+            }
+        });
+
+
+        //Name Field Label Listeners
+        nameField.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                nameField.setBounds(227, 405, 700, 50);
+                attach_Name.setBounds(27, 405, 200, 50);
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                nameField.setBounds(225, 400, 700, 50);
+                attach_Name.setBounds(25, 400, 200, 50);
+            }
+        });
+
+        final boolean[] exampleOn = new boolean[1]; exampleOn[0] = true;
+        nameField.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                if (exampleOn[0]) {
+                    nameField.setText("");
+                    exampleOn[0] = false;
+                }
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                String focus = nameField.getText();
+                if (focus.isEmpty() || focus.isBlank()) {
+                    nameField.setText("John");
+                    exampleOn[0] = true;
+                }
+            }
+        });
     }
+
 
     public static class TrapezeLabel extends JLabel {
 
