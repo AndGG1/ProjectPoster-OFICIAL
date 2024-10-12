@@ -22,15 +22,13 @@ public class SignInView {
         frame.setLayout(null);
         frame.getContentPane().setBackground(Color.GRAY);
 
-
-
         JLabel attach1 = new JLabel();
         attach1.setBackground(Color.LIGHT_GRAY);
         attach1.setOpaque(true);
         attach1.setBounds(18, 10, 949, 940);
         frame.add(attach1);
 
-        TrapezeLabel attach2 = new TrapezeLabel("Sign-In");
+        TrapezeLabel attach2 = new TrapezeLabel();
         attach2.setBackground(Color.GRAY);
         attach2.setForeground(Color.BLACK);
         attach2.setBounds(350, 0, 300, 50);
@@ -106,9 +104,9 @@ public class SignInView {
         attach1.repaint();
     }
 
-    public class TrapezeLabel extends JLabel {
+    public static class TrapezeLabel extends JLabel {
 
-        public TrapezeLabel(String text) {
+        public TrapezeLabel() {
             super("");
             super.setFont(new Font("Arial", Font.BOLD, 25));
             setOpaque(false);
