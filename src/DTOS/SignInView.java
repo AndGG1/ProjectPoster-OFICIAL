@@ -22,6 +22,8 @@ public class SignInView {
         frame.setLayout(null);
         frame.getContentPane().setBackground(Color.GRAY);
 
+
+
         JLabel attach1 = new JLabel();
         attach1.setBackground(Color.LIGHT_GRAY);
         attach1.setOpaque(true);
