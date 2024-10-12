@@ -127,6 +127,7 @@ public class SignInView {
         passField.setHorizontalAlignment(JTextField.CENTER);
         passField.setOpaque(true);
         passField.setText("12345");
+        passField.setEchoChar((char) 0);
         passField.setBounds(225, 500, 650, 50); // Added bounds for nameField
         attach1.add(passField);
 
@@ -136,13 +137,42 @@ public class SignInView {
         attach_Pass2.setBounds(30, 510, 850, 50);
         attach1.add(attach_Pass2);
 
-        JButton passButton = new JButton(EXTRA.getPassEye());
+        JButton passButton = new JButton(EXTRA.getPassOpenEye());
         passButton.setBackground(Color.GRAY);
         passButton.setContentAreaFilled(false);
         passButton.setBorderPainted(false);
         passButton.setFocusPainted(false);
         passButton.setBounds(890, 505, 50, 50);
         attach1.add(passButton);
+
+
+
+        //Name Container
+        JLabel attach_Link = new JLabel();
+        attach_Link.setBackground(Color.GRAY);
+        attach_Link.setForeground(Color.BLACK);
+        attach_Link.setFont(new Font("Arial", Font.BOLD, 25));
+        attach_Link.setHorizontalAlignment(JLabel.CENTER);
+        attach_Link.setText("LINK:");
+        attach_Link.setOpaque(true);
+        attach_Link.setBounds(25, 600, 200, 50); // Corrected bounds
+        attach1.add(attach_Link);
+
+        JTextField linkField = new JTextField();
+        linkField.setBackground(Color.GRAY);
+        linkField.setForeground(Color.BLACK);
+        linkField.setFont(new Font("Arial", Font.BOLD, 25));
+        linkField.setHorizontalAlignment(JTextField.CENTER);
+        linkField.setOpaque(true);
+        linkField.setText("https://site.com/John");
+        linkField.setBounds(225, 600, 700, 50); // Added bounds for nameField
+        attach1.add(linkField);
+
+        JLabel attach_Link2 = new JLabel();
+        attach_Link2.setBackground(Color.DARK_GRAY);
+        attach_Link2.setOpaque(true);
+        attach_Link2.setBounds(30, 610, 900, 50);
+        attach1.add(attach_Link2);
 
 
 
@@ -303,6 +333,7 @@ public class SignInView {
         });
 
         final boolean[] isNormalChar = new boolean[1];
+        isNormalChar[0] = true;
         passButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -310,10 +341,50 @@ public class SignInView {
 
                 if (!isNormalChar[0]) {
                     passField.setEchoChar((char) 0);
+                    passButton.setIcon(EXTRA.getPassOpenEye());
                     isNormalChar[0] = true;
                 } else {
                     passField.setEchoChar('•');
+                    passButton.setIcon(EXTRA.getPassClosedEye());
                     isNormalChar[0] = false;
+                }
+            }
+        });
+
+
+
+        //Link Listeners
+        linkField.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                linkField.setBounds(227, 605, 700, 50);
+                attach_Link.setBounds(27, 605, 200, 50);
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                linkField.setBounds(225, 600, 700, 50);
+                attach_Link.setBounds(25, 600, 200, 50);
+            }
+        });
+
+        final boolean[] exampleOn3 = new boolean[1];
+        exampleOn3[0] = true;
+        linkField.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                if (exampleOn3[0]) {
+                    linkField.setText("");
+                    exampleOn3[0] = false;
+                }
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                String focus = linkField.getText();
+                if (focus.isEmpty() || focus.isBlank()) {
+                    linkField.setText("https://site.com/John");
+                    exampleOn3[0] = true;
                 }
             }
         });
