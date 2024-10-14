@@ -137,7 +137,7 @@ public class SignInView {
         attach_Pass2.setBounds(30, 510, 850, 50);
         attach1.add(attach_Pass2);
 
-        JButton passButton = new JButton(EXTRA.getPassOpenEye());
+        JButton passButton = new JButton(EXTRA.getPassClosedEye());
         passButton.setBackground(Color.GRAY);
         passButton.setContentAreaFilled(false);
         passButton.setBorderPainted(false);
@@ -309,26 +309,14 @@ public class SignInView {
             }
         });
 
-        final boolean[] exampleOn2 = new boolean[1];
-        exampleOn2[0] = true;
+        boolean[] exampleOn2 = new boolean[1]; exampleOn2[0] = true;
         passField.addFocusListener(new FocusAdapter() {
             @Override
             public void focusGained(FocusEvent e) {
-                if (exampleOn2[0]) {
-                    passField.setText("");
-                    passField.setEchoChar('•');
-                    exampleOn2[0] = false;
-                }
-            }
-
-            @Override
-            public void focusLost(FocusEvent e) {
-                String focus = passField.getText();
-                if (focus.isEmpty() || focus.isBlank()) {
-                    passField.setText("12345");
-                    passField.setEchoChar((char) 0);
-                    exampleOn2[0] = true;
-                }
+                if (!exampleOn2[0]) return;
+               passField.setText("");
+               passField.setEchoChar('•');
+               exampleOn2[0] = false;
             }
         });
 
