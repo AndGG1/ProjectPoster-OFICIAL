@@ -126,8 +126,6 @@ public class SignInView {
         passField.setFont(new Font("Arial", Font.BOLD, 25));
         passField.setHorizontalAlignment(JTextField.CENTER);
         passField.setOpaque(true);
-        passField.setText("12345");
-        passField.setEchoChar((char) 0);
         passField.setBounds(225, 500, 650, 50); // Added bounds for nameField
         attach1.add(passField);
 
@@ -137,7 +135,7 @@ public class SignInView {
         attach_Pass2.setBounds(30, 510, 850, 50);
         attach1.add(attach_Pass2);
 
-        JButton passButton = new JButton(EXTRA.getPassClosedEye());
+        JButton passButton = new JButton(EXTRA_Links.getPassClosedEye());
         passButton.setBackground(Color.GRAY);
         passButton.setContentAreaFilled(false);
         passButton.setBorderPainted(false);
@@ -176,12 +174,33 @@ public class SignInView {
 
 
 
+        JButton confirmButton = new JButton();
+        confirmButton.setBackground(Color.GRAY);
+        confirmButton.setForeground(Color.BLACK);
+        confirmButton.setHorizontalAlignment(JButton.CENTER);
+        confirmButton.setFont(new Font("Arial", Font.BOLD, 25));
+        confirmButton.setText("Sign Up");
+        confirmButton.setOpaque(true);
+        confirmButton.setBorderPainted(false);
+        confirmButton.setFocusPainted(false);
+        confirmButton.setBounds(370, 780, 250, 50);
+        attach1.add(confirmButton);
+
+        JLabel attach_ConfirmButton = new JLabel();
+        attach_ConfirmButton.setBackground(Color.DARK_GRAY);
+        attach_ConfirmButton.setOpaque(true);
+        attach_ConfirmButton.setBounds(375, 790, 250, 50);
+        attach1.add(attach_ConfirmButton);
+
+
+
         //Revalidation Process
         attach1.setComponentZOrder(scrollPane, 0);
         attach1.setComponentZOrder(nameField, 0);
         attach1.setComponentZOrder(attach_Name, 0);
         attach1.revalidate();
         attach1.repaint();
+
 
 
         //Icon Label Listeners
@@ -309,19 +328,7 @@ public class SignInView {
             }
         });
 
-        boolean[] exampleOn2 = new boolean[1]; exampleOn2[0] = true;
-        passField.addFocusListener(new FocusAdapter() {
-            @Override
-            public void focusGained(FocusEvent e) {
-                if (!exampleOn2[0]) return;
-               passField.setText("");
-               passField.setEchoChar('•');
-               exampleOn2[0] = false;
-            }
-        });
-
         final boolean[] isNormalChar = new boolean[1];
-        isNormalChar[0] = true;
         passButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -329,11 +336,11 @@ public class SignInView {
 
                 if (!isNormalChar[0]) {
                     passField.setEchoChar((char) 0);
-                    passButton.setIcon(EXTRA.getPassOpenEye());
+                    passButton.setIcon(EXTRA_Links.getPassOpenEye());
                     isNormalChar[0] = true;
                 } else {
                     passField.setEchoChar('•');
-                    passButton.setIcon(EXTRA.getPassClosedEye());
+                    passButton.setIcon(EXTRA_Links.getPassClosedEye());
                     isNormalChar[0] = false;
                 }
             }
@@ -376,6 +383,49 @@ public class SignInView {
                 }
             }
         });
+
+
+
+        //ConfirmButton Listeners
+        confirmButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                boolean flag = false;
+
+                if (nameField.getText().replaceAll(" ", "").length() < 3) {
+                    flag = true;
+                    attach_Name.setBackground(Color.RED);
+                } else attach_Name.setBackground(Color.GRAY);
+
+                if (passField.getText().length() < 6) {
+                    flag = true;
+                    attach_Pass.setBackground(Color.RED);
+                } else attach_Pass.setBackground(Color.GRAY);
+
+                //Needed to create a variable as the if-statement was getting confusing by the method
+                boolean bool = EXTRA_Links.checkAbilityToCreate(linkField.getText());
+                if (!bool) {
+                    flag = true;
+                    attach_Link.setBackground(Color.RED);
+                } else attach_Link.setBackground(Color.GRAY);
+
+                if (flag) {
+                    System.out.println("Ooops! Something Went Wrong!");
+                    return;
+                }
+                System.out.println("Successfully created a new Account!");
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                confirmButton.setBounds(372, 785, 250, 50);
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                confirmButton.setBounds(370, 780, 250, 50);
+            }
+        });
     }
 
 
@@ -406,7 +456,7 @@ public class SignInView {
             FontMetrics fm = g2.getFontMetrics();
             int x = (getWidth() - fm.stringWidth(getText())) / 2;
             int y = (getHeight() + fm.getAscent()) / 2 - fm.getDescent();
-            g2.drawString("Sign-In", x-45, y);
+            g2.drawString("Sign-Up", x-45, y);
 
             super.paintComponent(g);
         }
