@@ -1,4 +1,6 @@
-package DTOS;
+package DTOS.UserInterfaces;
+
+import DTOS.EXTRA_Links;
 
 import javax.swing.*;
 import java.awt.*;

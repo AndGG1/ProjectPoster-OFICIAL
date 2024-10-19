@@ -7,9 +7,6 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Properties;
-import jakarta.mail.*;
-import jakarta.mail.internet.*;
 
 
 //Really Specific Order!

@@ -1,6 +1,5 @@
 import DTOS.EXTRA_Links;
-import DTOS.LogInView;
-import DTOS.SignInView;
+import DTOS.UserInterfaces.LogInView;
 
 public class Test {
 
