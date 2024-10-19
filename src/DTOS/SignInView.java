@@ -37,6 +37,7 @@ public class SignInView {
         attach1.add(attach2);
 
 
+
         //Profile Picture
         JLabel iconLabel = new JLabel();
         iconLabel.setBackground(Color.GRAY);
@@ -53,6 +54,7 @@ public class SignInView {
         attach_Icon.setOpaque(true);
         attach_Icon.setBounds(80, 80, 210, 260);
         attach1.add(attach_Icon);
+
 
 
         //Description Text Area
@@ -78,6 +80,7 @@ public class SignInView {
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         scrollPane.setBounds(350, 75, 550, 250);
         attach1.add(scrollPane);
+
 
 
         //Name Container
@@ -174,6 +177,7 @@ public class SignInView {
 
 
 
+        //Confirm Button
         JButton confirmButton = new JButton();
         confirmButton.setBackground(Color.GRAY);
         confirmButton.setForeground(Color.BLACK);
