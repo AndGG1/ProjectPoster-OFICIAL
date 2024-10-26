@@ -1,24 +1,23 @@
-package DTOS.UserInterfaces;
+package DTOS.UserInterfaces.Register;
 
 import DTOS.EXTRA_Links;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 
 public class SignInView {
+    private final JFrame frame;
+    private static Consistency cons;
 
     public SignInView() {
 
         //Main Part - Frame
-        JFrame frame = new JFrame();
+        frame = new JFrame();
         frame.setVisible(true);
         frame.setSize(1000, 1000);
         frame.setResizable(false);
@@ -198,12 +197,29 @@ public class SignInView {
         attach_ConfirmButton.setBounds(375, 790, 250, 50);
         attach1.add(attach_ConfirmButton);
 
-
+        
+        
+        //Swap_Interface_Button
+        JButton swapButton = new JButton();
+        swapButton.setForeground(Color.BLACK);
+        swapButton.setHorizontalAlignment(JButton.CENTER);
+        swapButton.setFont(new Font("Arial", Font.BOLD, 35));
+        swapButton.setText(">");
+        swapButton.setContentAreaFilled(false);
+        swapButton.setBorderPainted(false);
+        swapButton.setFocusPainted(false);
+        swapButton.setBounds(625, 0, 75, 75);
+        attach1.add(swapButton);
+        
+        
 
         //Revalidation Process
+        cons = new Consistency();
+        cons.setSignIn(this);
         attach1.setComponentZOrder(scrollPane, 0);
         attach1.setComponentZOrder(nameField, 0);
         attach1.setComponentZOrder(attach_Name, 0);
+        attach1.setComponentZOrder(swapButton, 0);
         attach1.revalidate();
         attach1.repaint();
 
@@ -432,6 +448,44 @@ public class SignInView {
                 confirmButton.setBounds(370, 780, 250, 50);
             }
         });
+        
+        
+        
+        //Swap Button Listeners
+        swapButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                frame.setVisible(false);
+                
+                //does the LogIn View exist? true => set it visible, else, create a new one
+                //this boosts the performance
+                if (!cons.isLog()) {
+                    cons.setLogIn(new LogInView());
+                    cons.setLog(true);
+                } else cons.getLogIn().getFrame().setVisible(true);
+            }
+        });
+        
+        
+        
+        //Frame Closed?
+        frame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                cons.setSign(false);
+                cons.setSignIn(null);
+                
+                if (cons.isLog()) cons.getLogIn().getFrame().setVisible(true);
+            }
+        });
+    }
+    
+    public JFrame getSignFrame() {
+        return frame;
+    }
+    
+    public static Consistency getCons() {
+        return cons;
     }
 
 

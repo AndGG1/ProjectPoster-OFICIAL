@@ -1,20 +1,18 @@
-package DTOS.UserInterfaces;
+package DTOS.UserInterfaces.Register;
 
 import DTOS.EXTRA_Links;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 
 public class LogInView {
+    private final JFrame frame;
 
     public LogInView() {
 
         //Main Part - Frame
-        JFrame frame = new JFrame();
+        frame = new JFrame();
         frame.setVisible(true);
         frame.setSize(1000, 500);
         frame.setResizable(false);
@@ -119,10 +117,25 @@ public class LogInView {
         attach_ConfirmButton.setOpaque(true);
         attach_ConfirmButton.setBounds(375, 330, 250, 50);
         attach1.add(attach_ConfirmButton);
+        
+        
+        
+        //Swap_Interface_Button
+        JButton swapButton = new JButton();
+        swapButton.setForeground(Color.BLACK);
+        swapButton.setHorizontalAlignment(JButton.CENTER);
+        swapButton.setFont(new Font("Arial", Font.BOLD, 35));
+        swapButton.setText("<");
+        swapButton.setContentAreaFilled(false);
+        swapButton.setBorderPainted(false);
+        swapButton.setFocusPainted(false);
+        swapButton.setBounds(300, 0, 75, 75);
+        attach1.add(swapButton);
 
 
 
         //Revalidation Process
+        Consistency cons = SignInView.getCons();
         attach1.setComponentZOrder(nameField, 0);
         attach1.setComponentZOrder(attach_Name, 0);
         attach1.revalidate();
@@ -200,30 +213,40 @@ public class LogInView {
                 }
             }
         });
-
-
-
-
-        //ConfirmButton Listeners
-        //ConfirmButton Listeners
-        confirmButton.addMouseListener(new MouseAdapter() {
+        
+        
+        
+        //Swap Button Listeners
+        swapButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-
-                //TODO: Make the LogIn Confirm_Button Check when clicked
-                System.out.println("In the making!");
-            }
-
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                confirmButton.setBounds(372, 325, 250, 50);
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-                confirmButton.setBounds(370, 320, 250, 50);
+                frame.setVisible(false);
+                
+                //does the SignIn View exist? true => set it visible, else, create a new one
+                //this boosts the performance
+                if (!cons.isSign()) {
+                    cons.setSignIn(new SignInView());
+                    cons.setSign(true);
+                } else cons.getSignIn().getSignFrame().setVisible(true);
             }
         });
+        
+        
+        
+        //Frame Closed?
+        frame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                cons.setLog(false);
+                cons.setLogIn(null);
+                
+                if (cons.isSign()) cons.getSignIn().getSignFrame().setVisible(true);
+            }
+        });
+    }
+    
+    public Frame getFrame() {
+        return frame;
     }
 
     public static class TrapezeLabel extends JLabel {
