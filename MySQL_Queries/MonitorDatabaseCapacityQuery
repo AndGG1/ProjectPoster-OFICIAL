@@ -1,3 +1,4 @@
+```sql
 DELIMITER //
 
 -- Initialization Process
