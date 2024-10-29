@@ -2,27 +2,14 @@ package Database.Initialization;
 
 import java.io.IOException;
 import java.sql.*;
+import java.util.Arrays;
 
 public class Test {
     
     public static void main(String[] args) throws IOException{
+
         
-        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/music?continueBatchOnError=false",
-                System.getenv("MYSQL_USER"), System.getenv("MYSQL_PASS"));
-             Statement st = connection.createStatement();
-        ) {
-            String tableName = "music.artists";
-            String columnName = "artist_name";
-            String columnValue = "Bob Dylan";
-            if (!executeSelect(st, tableName, columnName, columnValue)) {
-                insertRecord(st, tableName, new String[] {columnName}, new String[] {columnValue});
-            } else {
-                
-                updateRecord(st, tableName, columnName, columnValue, "artist_name", "AndrewTheOne");
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        reverse(new int[] {2, 1});
     }
     
     private static boolean executeSelect(Statement statement, String table,
@@ -91,5 +78,17 @@ public class Test {
             conn.rollback();
         }
         conn.setAutoCommit(true);
+    }
+    
+    private static void reverse(int[] arr) {
+        int l = 0;
+        int r = arr.length-1;
+        while (l < r) {
+            int temp = arr[l];
+            arr[l] = arr[r];
+            arr[r] = temp;
+            l++;
+            r--;
+        }
     }
 }

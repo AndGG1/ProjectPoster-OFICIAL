@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Properties;
@@ -34,10 +35,20 @@ public class Database_Initialization {
             System.out.println(metaData.getSQLStateType());
             System.out.println(metaData.getConnection());
 
+            int id = Integer.parseInt(props.getProperty("id"));
             if (!checkSchema(conn)) {
                 System.out.println("storefront schema does not exist! :)");
-                setUpSchema(conn);
-            } else System.out.println("The Schema does already exist! :(");
+                setUpSchema(conn, id);
+            } else {
+                
+                if (shouldCreateNewDatabase(conn)) {
+                    System.out.println("The Schema does already exist! :(");
+                    setUpSchema(conn, id + 1);
+                    props.setProperty("id", id + 1 + "");
+                } else System.out.println("Failed to create a new database!" +
+                        " The current one is not overpopulated by data.");
+            }
+            
             
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -63,8 +74,8 @@ public class Database_Initialization {
         return true;
     }
 
-    private static void setUpSchema(Connection conn) throws SQLException {
-        String createSchema = "CREATE SCHEMA storefront";
+    private static void setUpSchema(Connection conn, int id) throws SQLException {
+        String createSchema = "CREATE SCHEMA storefront" + id;
 
         String createUser = """
             CREATE TABLE storefront.user (
@@ -86,6 +97,25 @@ public class Database_Initialization {
             } else System.out.println("User already exists as a Table!");
         } catch (SQLException e) {
             e.printStackTrace();
+        }
+    }
+    
+    private static boolean shouldCreateNewDatabase(Connection conn) throws SQLException {
+        try (Statement st = conn.createStatement()) {
+            st.executeQuery("SELECT create_new_db FROM storefront.db_config WHERE id = 1");
+            ResultSet rs = st.getResultSet();
+            
+            return rs.getInt("create_new_db") == 1;
+        }
+    }
+    
+    private static void resetFlag(Connection conn) throws SQLException {
+        try (Statement st = conn.createStatement()) {
+            st.executeUpdate("UPDATE db_config SET create_new_db = 0 WHERE id = 1");
+            
+            if (st.getUpdateCount() != 1) {
+                throw new RuntimeException("Unknown Exception Occurred!");
+            }
         }
     }
 }
