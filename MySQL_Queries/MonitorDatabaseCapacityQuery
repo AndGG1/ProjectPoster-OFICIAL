@@ -26,3 +26,4 @@ ON SCHEDULE EVERY 1 HOUR
 DO CALL MonitorDatabaseSize();
 
 DELIMITER ;
+```
