@@ -1,0 +1,8 @@
+USE storefront;
+
+CREATE TABLE db_config (
+    id INT PRIMARY KEY,
+    create_new_db INT
+);
+
+INSERT INTO db_config (id, create_new_db) VALUES (1, 0);
