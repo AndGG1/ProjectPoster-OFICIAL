@@ -1,0 +1,29 @@
+```sql
+DELIMITER //
+
+-- Initialization Process
+CREATE PROCEDURE MonitorDatabaseSize()
+BEGIN
+      DECLARE db_size INT DEFAULT 0;
+      
+      SELECT ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) INTO db_size
+      FROM information_schema.TABLES
+      WHERE table_schema = "storefront";
+      
+      IF db_size > 1000 THEN -- Limited size of the db. (db_size <= 1000)
+          CALL SwitchDatabase(); -- we call the other PROCEDURE which will shitch the db.
+	  END IF;
+END //
+
+CREATE PROCEDURE SwitchDatabase()
+BEGIN
+	 UPDATE storefront.db_config SET create_new_db = 1 WHERE id = 1;
+END //
+
+-- every hour it will check the database size, if overpopulated, it will assign a flag/warning to the db_config's create _new_db variable
+CREATE EVENT MonitorDBEvent
+ON SCHEDULE EVERY 1 HOUR
+DO CALL MonitorDatabaseSize();
+
+DELIMITER ;
+```
