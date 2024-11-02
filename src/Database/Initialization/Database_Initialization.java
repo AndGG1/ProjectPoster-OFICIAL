@@ -42,7 +42,7 @@ public class Database_Initialization {
             } else {
                 
                 if (shouldCreateNewDatabase(conn)) {
-                    System.out.println("The Schema does already exist! :(");
+                    System.out.println("The Schema does already exist! :( --> Creating a new one...");
                     setUpSchema(conn, id + 1);
                     props.setProperty("id", id + 1 + "");
                 } else System.out.println("Failed to create a new database!" +
@@ -102,10 +102,11 @@ public class Database_Initialization {
     
     private static boolean shouldCreateNewDatabase(Connection conn) throws SQLException {
         try (Statement st = conn.createStatement()) {
-            st.executeQuery("SELECT create_new_db FROM storefront.db_config WHERE id = 1");
-            ResultSet rs = st.getResultSet();
+            ResultSet rs = st.executeQuery("SELECT create_new_db FROM storefront.db_config WHERE id = 1");
             
-            return rs.getInt("create_new_db") == 1;
+            if (rs.next()) {
+                return rs.getInt("create_new_db") == 1;
+            } else return false;
         }
     }
     

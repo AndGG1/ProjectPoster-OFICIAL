@@ -3,10 +3,16 @@ package DTOS;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 //Really Specific Order!
@@ -42,21 +48,29 @@ public final class EXTRA_Links {
 
     //Link Validation
     public static boolean checkAbilityToCreate(String link)  {
-        if (link.startsWith("https://") || link.startsWith("http://")) {
-            return valid_Hyper_Text_Transfer_Protocol(link);
+        if (link.startsWith("http://") || link.startsWith("https://") && !link.equals("https://site.com/John")) {
+            
+            Pattern emailPattern = Pattern.compile
+                    ("([\\w.-]+)\\.([\\w .-]){2,}/(.+)");
+            String checkOn = link.split("//")[1];
+            Matcher matcher = emailPattern.matcher(checkOn);
+            
+            if (matcher.find()) {
+                return valid_Hyper_Text_Transfer_Protocol(link);
+            }
         }
         return false;
     }
 
-    public static boolean valid_Hyper_Text_Transfer_Protocol(String httpToCheck) {
+    private static boolean valid_Hyper_Text_Transfer_Protocol(String httpToCheck) {
 
         try {
             URL url = new URL(httpToCheck);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.connect();
-
+            
             if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-                return true;
+                return ContentValidator.isValidContent(connection);
             }
 
         } catch (IOException e) {
@@ -64,5 +78,44 @@ public final class EXTRA_Links {
         }
 
         return false;
+    }
+    
+    public static void accessLink(String link) {
+        URI uri;
+        try  {
+            uri = new URI(link);
+            
+            if (Desktop.isDesktopSupported()) {
+                try {
+                    Desktop.getDesktop().browse(uri);
+                } catch (IOException e) {
+                    //not handling
+                }
+            }
+        } catch (URISyntaxException e) {
+            //not handling
+        }
+    }
+    
+    private static class ContentValidator {
+        public static boolean isValidContent(HttpURLConnection connection) {
+            
+            try {
+                BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                StringBuilder content = new StringBuilder();
+                String dummy = "";
+                while ((dummy = in.readLine()) != null) {
+                    content.append(dummy);
+                    if (content.toString().contains("page isn't available") ||
+                            content.toString().contains("page not found")) {
+                        return false;
+                    }
+                }
+                in.close();
+                return true;
+            } catch (IOException e) {
+                return false;
+            }
+        }
     }
 }

@@ -233,28 +233,25 @@ public class SignInView {
                 if (e.getButton() == 1) {
                     JFileChooser fileChooser = new JFileChooser();
                     fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-                    fileChooser.showOpenDialog(frame);
-
-                    File returnVal = fileChooser.getSelectedFile();
-
-                    if (returnVal.exists()) {
-
-                        try {
-                            Image img = ImageIO.read(new File(returnVal.getPath()));
-                            if (img != null) {
-                                img = img.getScaledInstance(200, 250, Image.SCALE_SMOOTH);
-                                iconLabel.setIcon(new ImageIcon(img));
-
-                            } else {
-
-                                Image img2 = ImageIO.read(new URL("https://avatars.githubusercontent.com/u/154756433?v=4&size=64"));
-                                img2 = img2.getScaledInstance(200, 250, Image.SCALE_SMOOTH);
-                                iconLabel.setIcon(new ImageIcon(img2));
+                    int result = fileChooser.showOpenDialog(frame);
+                    
+                    if (result == JFileChooser.APPROVE_OPTION) {
+                        File returnVal = fileChooser.getSelectedFile();
+                        if (returnVal.exists() && returnVal.isFile() && returnVal.canRead()) {
+                            try {
+                                Image img = ImageIO.read(returnVal);
+                                if (img != null) {
+                                    img = img.getScaledInstance(200, 250, Image.SCALE_SMOOTH);
+                                    iconLabel.setIcon(new ImageIcon(img));
+                                } else {
+                                    Image img2 = ImageIO.read(new URL("https://avatars.githubusercontent.com/u/154756433?v=4&size=64"));
+                                    img2 = img2.getScaledInstance(200, 250, Image.SCALE_SMOOTH);
+                                    iconLabel.setIcon(new ImageIcon(img2));
+                                }
+                                iconLabel.setText("");
+                            } catch (IOException e2) {
+                                //do nothing
                             }
-                            iconLabel.setText("");
-
-                        } catch (IOException ex) {
-                            //Not handling
                         }
                     }
                 }
@@ -430,6 +427,7 @@ public class SignInView {
                     flag = true;
                     attach_Link.setBackground(Color.RED);
                 } else attach_Link.setBackground(Color.GRAY);
+                
 
                 if (flag) {
                     System.out.println("Ooops! Something Went Wrong!");
