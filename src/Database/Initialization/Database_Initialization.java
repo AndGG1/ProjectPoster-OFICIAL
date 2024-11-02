@@ -15,7 +15,7 @@ import java.util.Properties;
 
 public class Database_Initialization {
 
-    private static String USE_SCHEMA = "USE storefront";
+    private static String USE_SCHEMA = "USE storefront1";
     private static int MYSQL_DB_NOT_FOUND = 1049;
 
     public static void main(String[] args) throws IOException {
@@ -37,7 +37,7 @@ public class Database_Initialization {
 
             int id = Integer.parseInt(props.getProperty("id"));
             if (!checkSchema(conn)) {
-                System.out.println("storefront schema does not exist! :)");
+                System.out.println("storefront1 schema does not exist! :)");
                 setUpSchema(conn, id);
             } else {
                 
@@ -45,6 +45,7 @@ public class Database_Initialization {
                     System.out.println("The Schema does already exist! :( --> Creating a new one...");
                     setUpSchema(conn, id + 1);
                     props.setProperty("id", id + 1 + "");
+                    resetFlag(conn);
                 } else System.out.println("Failed to create a new database!" +
                         " The current one is not overpopulated by data.");
             }
@@ -78,7 +79,7 @@ public class Database_Initialization {
         String createSchema = "CREATE SCHEMA storefront" + id;
 
         String createUser = """
-            CREATE TABLE storefront.user (
+            CREATE TABLE storefront1.user (
             user_id INT NOT NULL AUTO_INCREMENT,
             user_name TEXT NOT NULL,
             user_pass TEXT NOT NULL,

@@ -1,6 +1,7 @@
 package DTOS.UserInterfaces.Register;
 
 import DTOS.EXTRA_Links;
+import Database.Functionality.Startup.Startup_Log;
 
 import javax.swing.*;
 import java.awt.*;
@@ -228,6 +229,19 @@ public class LogInView {
                     cons.setSignIn(new SignInView());
                     cons.setSign(true);
                 } else cons.getSignIn().getSignFrame().setVisible(true);
+            }
+        });
+        
+        
+        
+        confirmButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                passField.setEchoChar((char) 0);
+                String pass = passField.getText();
+                
+                System.out.println(Startup_Log.checkUser(nameField.getText(), pass));
+                pass = "";
             }
         });
         
