@@ -237,11 +237,21 @@ public class LogInView {
         confirmButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                passField.setEchoChar((char) 0);
-                String pass = passField.getText();
-                
-                System.out.println(Startup_Log.checkUser(nameField.getText(), pass));
-                pass = "";
+                boolean validUsername = Startup_Log.searchUser(nameField.getText());
+                boolean validPass = validUsername ?  Startup_Log.checkUser(nameField.getText(), String.valueOf(passField.getPassword())) : false;
+
+                if (!validUsername && !validPass) {
+                    attach_Name.setBackground(Color.RED);
+                    attach_Pass.setBackground(Color.RED);
+                    return;
+                } else if (!validPass) {
+                    attach_Name.setBackground(Color.GRAY);
+                    attach_Pass.setBackground(Color.RED);
+                    return;
+                }
+                attach_Name.setBackground(Color.GRAY);
+                attach_Pass.setBackground(Color.GRAY);
+                frame.dispose();
             }
         });
         

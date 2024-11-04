@@ -17,7 +17,7 @@ public class Startup_Log {
     private static Properties props = new Properties();
     private static Properties props2 = new Properties();
     
-    private static boolean searchUser(String username) {
+    public static boolean searchUser(String username) {
         try {
             props.load(Files.newInputStream(Path.of("users.properties")));
             return props.getProperty(username) != null;
@@ -28,7 +28,6 @@ public class Startup_Log {
     }
     
     public static boolean checkUser(String username, String password) {
-        if (searchUser(username)) {
             String databaseName = "storefront" + props.getProperty(username);  // Ensuring the database name is correctly retrieved
             String query = String.format("SELECT user_pass FROM %s.user WHERE user_name='%s' AND user_pass='%s'", databaseName, username, password);
             
@@ -63,7 +62,5 @@ public class Startup_Log {
             } catch (SQLException e) {
                 return false;
             }
-        }
-        return false;
     }
 }

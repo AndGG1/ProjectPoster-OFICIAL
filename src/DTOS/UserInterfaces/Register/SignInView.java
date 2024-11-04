@@ -1,6 +1,7 @@
 package DTOS.UserInterfaces.Register;
 
 import DTOS.EXTRA_Links;
+import Database.Functionality.Startup.Startup_Sign;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -433,7 +434,8 @@ public class SignInView {
                     System.out.println("Ooops! Something Went Wrong!");
                     return;
                 }
-                System.out.println("Successfully created a new Account!");
+                Startup_Sign.addUser(nameField.getText(), String.valueOf(passField.getPassword()), linkField.getText(), "", descriptionArea.getText());
+                System.out.println("Successfully Added User: " + nameField.getText());
             }
 
             @Override
