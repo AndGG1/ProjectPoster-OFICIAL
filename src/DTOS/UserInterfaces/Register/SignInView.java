@@ -20,7 +20,7 @@ public class SignInView {
 
     public SignInView() {
         //Resource Bundle
-        Locale.setDefault(new Locale("de", "DE"));
+        //Locale.setDefault(new Locale("de", "DE"));
         ResourceBundle rb = null;
         if (Locale.getDefault().toString().equals("ro_RO") || Locale.getDefault().toString().equals("de_DE")) {
             rb = ResourceBundle.getBundle("BasicText", Locale.getDefault());

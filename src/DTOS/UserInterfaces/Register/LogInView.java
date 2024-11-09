@@ -15,7 +15,7 @@ public class LogInView {
     public LogInView() {
         
         //Resource Bundle
-        Locale.setDefault(new Locale("de", "DE"));
+        //Locale.setDefault(new Locale("de", "DE"));
         ResourceBundle rb = null;
         if (Locale.getDefault().toString().equals("ro_RO") || Locale.getDefault().toString().equals("de_DE")) {
             rb = ResourceBundle.getBundle("BasicText", Locale.getDefault());
@@ -258,6 +258,7 @@ public class LogInView {
             public void mouseClicked(MouseEvent e) {
                 boolean validUsername = Startup_Log.searchUser(nameField.getText());
                 boolean validPass = validUsername ?  Startup_Log.checkUser(nameField.getText(), String.valueOf(passField.getPassword())) : false;
+                System.out.println(validPass);
 
                 if (!validUsername && !validPass) {
                     attach_Name.setBackground(Color.RED);

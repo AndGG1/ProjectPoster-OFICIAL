@@ -28,22 +28,22 @@ public class Startup_Log {
     }
     
     public static boolean checkUser(String username, String password) {
-            String databaseName = "storefront" + props.getProperty(username);  // Ensuring the database name is correctly retrieved
+        //Getting the props. needed to access the Server in a secure way.
+        try {
+            props2.load(Files.newInputStream(Path.of("storefront.properties"),
+                    StandardOpenOption.READ));
+        } catch (IOException e) {
+            return false;
+        }
+        
+            String databaseName = "storefront" + props2.getProperty("id");  // Ensuring the database name is correctly retrieved
             String query = String.format("SELECT user_pass FROM %s.user WHERE user_name='%s' AND user_pass='%s'", databaseName, username, password);
-            
-            //Getting the props. needed to access the Server in a secure way.
-            try {
-                props2.load(Files.newInputStream(Path.of("storefront.properties"),
-                        StandardOpenOption.READ));
-            } catch (IOException e) {
-                return false;
-            }
             
             var ds = new MysqlDataSource();
             ds.setServerName("localhost");
             ds.setPort(3306);
-            ds.setUser(props.getProperty("user"));  // Make sure these properties are set correctly
-            ds.setPassword(props.getProperty("pass"));
+            ds.setUser(props2.getProperty("user"));  // Make sure these properties are set correctly
+            ds.setPassword(props2.getProperty("pass"));
             
             try (Connection conn = ds.getConnection();
                  Statement st = conn.createStatement();
