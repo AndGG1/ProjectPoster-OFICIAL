@@ -1,6 +1,7 @@
 package DTOS.UserInterfaces.Register;
 
 import DTOS.EXTRA_Links;
+import Database.Functionality.Startup.Startup_Log;
 import Database.Functionality.Startup.Startup_Sign;
 
 import javax.imageio.ImageIO;
@@ -369,6 +370,13 @@ public class SignInView {
 
 
         //Link Listeners
+        attach_Link.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                EXTRA_Links.accessLink(linkField.getText());
+            }
+        });
+        
         linkField.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
@@ -434,8 +442,10 @@ public class SignInView {
                     System.out.println("Ooops! Something Went Wrong!");
                     return;
                 }
-                Startup_Sign.addUser(nameField.getText(), String.valueOf(passField.getPassword()), linkField.getText(), "", descriptionArea.getText());
-                System.out.println("Successfully Added User: " + nameField.getText());
+                if (!Startup_Log.searchUser(nameField.getText())) {
+                    Startup_Sign.addUser(nameField.getText(), String.valueOf(passField.getPassword()), linkField.getText(), "", descriptionArea.getText());
+                    System.out.println("Successfully Added User: " + nameField.getText());
+                }
             }
 
             @Override

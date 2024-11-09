@@ -20,9 +20,9 @@ import java.util.regex.Pattern;
 
 // 0 = Open Password Eye | 1 = Closed Password Eye
 public final class EXTRA_Links {
-
+    
     private static ArrayList<ImageIcon> icons = new ArrayList<>();
-
+    
     public static void doIt(String s) {
         Image img = null;
         try {
@@ -34,18 +34,18 @@ public final class EXTRA_Links {
             icons.add(new ImageIcon(img.getScaledInstance(40, 40, Image.SCALE_SMOOTH)));
         }
     }
-
+    
     public static ImageIcon getPassOpenEye() {
         //doIt("https://cdn-icons-png.flaticon.com/128/709/709724.png");
         return icons.get(0);
     }
-
+    
     public static ImageIcon getPassClosedEye() {
         //doIt("https://cdn-icons-png.flaticon.com/128/9055/9055153.png");
         return icons.get(1);
     }
-
-
+    
+    
     //Link Validation
     public static boolean checkAbilityToCreate(String link)  {
         if (link.startsWith("http://") || link.startsWith("https://") && !link.equals("https://site.com/John")) {
@@ -61,9 +61,9 @@ public final class EXTRA_Links {
         }
         return false;
     }
-
+    
     private static boolean valid_Hyper_Text_Transfer_Protocol(String httpToCheck) {
-
+        
         try {
             URL url = new URL(httpToCheck);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -72,11 +72,11 @@ public final class EXTRA_Links {
             if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
                 return ContentValidator.isValidContent(connection);
             }
-
+            
         } catch (IOException e) {
             //TODO - handle
         }
-
+        
         return false;
     }
     
