@@ -41,7 +41,7 @@ public class Database_Initialization {
                 setUpSchema(conn, id);
             } else {
                 
-                if (shouldCreateNewDatabase(conn)) {
+                if (shouldCreateNewDatabase(conn, id+"")) {
                     System.out.println("The Schema does already exist! :( --> Creating a new one...");
                     setUpSchema(conn, id + 1);
                     props.setProperty("id", id + 1 + "");
@@ -78,17 +78,19 @@ public class Database_Initialization {
     private static void setUpSchema(Connection conn, int id) throws SQLException {
         String createSchema = "CREATE SCHEMA storefront" + id;
 
-        String createUser = """
-            CREATE TABLE storefront1.user (
-            user_id INT NOT NULL AUTO_INCREMENT,
-            user_name TEXT NOT NULL,
-            user_pass TEXT NOT NULL,
-            user_link TEXT,
-            user_img TEXT,
-            user_description TEXT,
-            PRIMARY KEY (user_id)
-            )
-            """;
+        String createUser =
+            "CREATE TABLE storefront" + id + ".user (" +
+       """
+        user_id INT NOT NULL AUTO_INCREMENT,
+        user_name TEXT NOT NULL,
+        user_pass TEXT NOT NULL,
+        user_link TEXT,
+        user_img TEXT,
+        user_description TEXT,
+        PRIMARY KEY (user_id)
+        )
+       """;
+  
         try (Statement st = conn.createStatement()) {
             System.out.println("Creating storefront db.");
             st.execute(createSchema);
@@ -101,9 +103,9 @@ public class Database_Initialization {
         }
     }
     
-    private static boolean shouldCreateNewDatabase(Connection conn) throws SQLException {
+    private static boolean shouldCreateNewDatabase(Connection conn, String id) throws SQLException {
         try (Statement st = conn.createStatement()) {
-            ResultSet rs = st.executeQuery("SELECT create_new_db FROM storefront.db_config WHERE id = 1");
+            ResultSet rs = st.executeQuery("SELECT create_new_db FROM storefront" + id + ".db_config WHERE id = 1");
             
             if (rs.next()) {
                 return rs.getInt("create_new_db") == 1;

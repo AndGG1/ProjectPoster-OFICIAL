@@ -42,8 +42,8 @@ public class Startup_Log {
             var ds = new MysqlDataSource();
             ds.setServerName("localhost");
             ds.setPort(3306);
-            ds.setUser("And_GG");  // Make sure these properties are set correctly
-            ds.setPassword("ER86Yt42");
+            ds.setUser(props.getProperty("user"));  // Make sure these properties are set correctly
+            ds.setPassword(props.getProperty("pass"));
             
             try (Connection conn = ds.getConnection();
                  Statement st = conn.createStatement();
