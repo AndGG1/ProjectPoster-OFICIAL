@@ -11,13 +11,21 @@ import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 public class SignInView {
     private final JFrame frame;
     private static Consistency cons;
 
     public SignInView() {
-
+        //Resource Bundle
+        Locale.setDefault(new Locale("de", "DE"));
+        ResourceBundle rb = null;
+        if (Locale.getDefault().toString().equals("ro_RO") || Locale.getDefault().toString().equals("de_DE")) {
+            rb = ResourceBundle.getBundle("BasicText", Locale.getDefault());
+        }
+        
         //Main Part - Frame
         frame = new JFrame();
         frame.setVisible(true);
@@ -66,10 +74,12 @@ public class SignInView {
         descriptionArea.setForeground(Color.BLACK);
         descriptionArea.setFont(new Font("Arial", Font.BOLD, 25));
         descriptionArea.setOpaque(true);
-        descriptionArea.setText("Tell me about yourself...");
         descriptionArea.setFocusable(true);
         descriptionArea.setLineWrap(true);
         descriptionArea.setWrapStyleWord(true);
+        if (rb != null) {
+            descriptionArea.setText(rb.getString("description"));
+        }
 
 
         JLabel attach_Description = new JLabel();
@@ -214,6 +224,17 @@ public class SignInView {
         attach1.add(swapButton);
         
         
+        
+        //Internationalization
+        if (rb != null) {
+            attach_Name.setText(rb.getString("name"));
+            attach_Pass.setText(rb.getString("password"));
+            attach_Link.setText(rb.getString("link"));
+            //attach2.setText(rb.getString("sign"));
+            confirmButton.setText(rb.getString("sign"));
+        }
+        
+        
 
         //Revalidation Process
         cons = new Consistency();
@@ -273,6 +294,8 @@ public class SignInView {
 
         //Description Label Listeners
         final boolean[] flag = {true};
+        ResourceBundle finalRb = rb;
+        ResourceBundle finalRb1 = rb;
         descriptionArea.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
@@ -289,7 +312,9 @@ public class SignInView {
                 scrollPane.setBounds(350, 75, 550, 250);
 
                 if (descriptionArea.getText().isEmpty() || descriptionArea.getText().isBlank()) {
-                    descriptionArea.setText("Tell me about yourself...");
+                    if (finalRb1 != null) {
+                        descriptionArea.setText(finalRb1.getString("description"));
+                    } else descriptionArea.setText("Tell me about yourself...");
                     flag[0] = true;
                 }
             }

@@ -6,12 +6,21 @@ import Database.Functionality.Startup.Startup_Log;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 public class LogInView {
     private final JFrame frame;
 
     public LogInView() {
-
+        
+        //Resource Bundle
+        Locale.setDefault(new Locale("de", "DE"));
+        ResourceBundle rb = null;
+        if (Locale.getDefault().toString().equals("ro_RO") || Locale.getDefault().toString().equals("de_DE")) {
+            rb = ResourceBundle.getBundle("BasicText", Locale.getDefault());
+        }
+        
         //Main Part - Frame
         frame = new JFrame();
         frame.setVisible(true);
@@ -132,6 +141,16 @@ public class LogInView {
         swapButton.setFocusPainted(false);
         swapButton.setBounds(300, 0, 75, 75);
         attach1.add(swapButton);
+        
+        
+        
+        //Internationalization
+        if (rb != null) {
+            attach_Name.setText(rb.getString("name"));
+            attach_Pass.setText(rb.getString("password"));
+            //attach2.setText(rb.getString("sign"));
+            confirmButton.setText(rb.getString("sign"));
+        }
 
 
 
