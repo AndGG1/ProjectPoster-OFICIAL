@@ -22,6 +22,7 @@ public class Database_Initialization {
         Properties props = new Properties();
         props.load(Files.newInputStream(Path.of("storefront.properties"),
                 StandardOpenOption.READ));
+        String persistence = Files.readString(Path.of("META-INF/persistence.xml"));
         
         var ds = new MysqlDataSource();
         ds.setServerName("localhost");
@@ -45,9 +46,30 @@ public class Database_Initialization {
                     System.out.println("The Schema does already exist! :( --> Creating a new one...");
                     setUpSchema(conn, id + 1);
                     props.setProperty("id", id + 1 + "");
+                    
+                    
+                    StringBuilder appendTo = new StringBuilder(persistence.split("</properties>")[0]);
+                    String p1 = """
+                             <property name="jakarta.persistence.jdbc.driver" value="com.mysql.cj.jdbc.Driver" />
+                             <property name="jakarta.persistence.jdbc.url"    value="jdbc:mysql://localhost:3306/storefront%s" />
+                             <property name="jakarta.persistence.jdbc.user"   value="And_GG" />
+                             <property name="jakarta.persistence.jdbc.password" value="ER86Yt42" />"""
+                            .formatted(props.getProperty("id"));
+                    
+                    String p2 = """
+                                    </properties>
+                            
+                                </persistence-unit>
+                            </persistence>
+                            """;
+                    appendTo.append(p1);
+                    Files.writeString(Path.of("persistence.xml"), p1 + "\n" + p2);
+                    
+                    
                     resetFlag(conn);
+                    
                 } else System.out.println("Failed to create a new database!" +
-                        " The current one is not overpopulated by data.");
+                            " The current one is not overpopulated by data.");
             }
             
             
@@ -123,3 +145,4 @@ public class Database_Initialization {
         }
     }
 }
+

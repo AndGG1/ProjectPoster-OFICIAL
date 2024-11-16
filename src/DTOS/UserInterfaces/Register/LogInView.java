@@ -272,6 +272,7 @@ public class LogInView {
                 attach_Name.setBackground(Color.GRAY);
                 attach_Pass.setBackground(Color.GRAY);
                 frame.dispose();
+                new WelcomePage();
             }
         });
         
