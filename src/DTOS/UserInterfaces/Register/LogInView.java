@@ -2,6 +2,7 @@ package DTOS.UserInterfaces.Register;
 
 import DTOS.EXTRA_Links;
 import Database.Functionality.Startup.Startup_Log;
+import Database.Functionality.User;
 
 import javax.swing.*;
 import java.awt.*;
@@ -272,7 +273,11 @@ public class LogInView {
                 attach_Name.setBackground(Color.GRAY);
                 attach_Pass.setBackground(Color.GRAY);
                 frame.dispose();
-                new WelcomePage();
+                
+                User user = Startup_Log.getUser();
+                System.out.println(user + "-");
+                System.out.println(user.getImg());
+                new WelcomePage(user.getImg(), user.getUsername(), user.getDescription());
             }
         });
         

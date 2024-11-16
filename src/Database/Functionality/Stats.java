@@ -14,8 +14,8 @@ import java.util.Properties;
 public class Stats {
     
     public static void main(String[] args) throws SQLException, IOException, InterruptedException {
-        showUser("Siah");
-        showStats(3);
+        showUser("Dan");
+        //showStats(0);
     }
     
     static MysqlDataSource ds;

@@ -14,7 +14,7 @@ import java.sql.Statement;
 import java.util.Properties;
 
 public class Database_Initialization {
-
+    //TODO - keep track of Initialization_DB
     private static String USE_SCHEMA = "USE storefront1";
     private static int MYSQL_DB_NOT_FOUND = 1049;
 

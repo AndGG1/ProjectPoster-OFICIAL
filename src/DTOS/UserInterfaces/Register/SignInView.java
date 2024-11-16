@@ -249,6 +249,7 @@ public class SignInView {
 
 
         //Icon Label Listeners
+        final String[] imgSource = new String[1];
         iconLabel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -265,10 +266,16 @@ public class SignInView {
                                 Image img = ImageIO.read(returnVal);
                                 if (img != null) {
                                     img = img.getScaledInstance(200, 250, Image.SCALE_SMOOTH);
+                                    //ImageIcon icon = new ImageIcon(img);
+                                    Object p = img.getProperty("url", null);
+                                    URL url = (URL) p;
+                                    imgSource[0] = url+"";
                                     iconLabel.setIcon(new ImageIcon(img));
                                 } else {
                                     Image img2 = ImageIO.read(new URL("https://avatars.githubusercontent.com/u/154756433?v=4&size=64"));
                                     img2 = img2.getScaledInstance(200, 250, Image.SCALE_SMOOTH);
+                                    ImageIcon icon = new ImageIcon(img2);
+                                    imgSource[0] = "https://avatars.githubusercontent.com/u/154756433?v=4&size=64";
                                     iconLabel.setIcon(new ImageIcon(img2));
                                 }
                                 iconLabel.setText("");
@@ -468,7 +475,7 @@ public class SignInView {
                     return;
                 }
                 if (!Startup_Log.searchUser(nameField.getText())) {
-                    Startup_Sign.addUser(nameField.getText(), String.valueOf(passField.getPassword()), linkField.getText(), "", descriptionArea.getText());
+                    Startup_Sign.addUser(nameField.getText(), String.valueOf(passField.getPassword()), linkField.getText(), imgSource[0], descriptionArea.getText());
                     System.out.println("Successfully Added User: " + nameField.getText());
                 }
             }
