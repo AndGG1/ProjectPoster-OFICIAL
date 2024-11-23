@@ -81,7 +81,6 @@ public class Startup_Log {
     }
     
     public static User getUser() {
-        System.out.println(user.getImg() + "-");
         return user;
     }
 }

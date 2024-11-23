@@ -11,6 +11,7 @@ public class Test {
         // so that when the client joins, the data gets loaded and then the interface, not both in the same time.
         EXTRA_Links.doIt("https://cdn-icons-png.flaticon.com/128/709/709724.png");
         EXTRA_Links.doIt("https://cdn-icons-png.flaticon.com/128/9055/9055153.png");
+        EXTRA_Links.doIt("https://www.iconsdb.com/icons/preview/blue/info-xxl.png");
         
         new SignInView();
     }

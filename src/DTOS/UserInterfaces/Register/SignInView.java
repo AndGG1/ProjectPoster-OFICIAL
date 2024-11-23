@@ -3,6 +3,7 @@ package DTOS.UserInterfaces.Register;
 import DTOS.EXTRA_Links;
 import Database.Functionality.Startup.Startup_Log;
 import Database.Functionality.Startup.Startup_Sign;
+import Database.Functionality.Stats;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -11,6 +12,7 @@ import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.sql.SQLException;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
@@ -266,15 +268,12 @@ public class SignInView {
                                 Image img = ImageIO.read(returnVal);
                                 if (img != null) {
                                     img = img.getScaledInstance(200, 250, Image.SCALE_SMOOTH);
-                                    //ImageIcon icon = new ImageIcon(img);
-                                    Object p = img.getProperty("url", null);
-                                    URL url = (URL) p;
-                                    imgSource[0] = url+"";
+                                    imgSource[0] = fileChooser.getSelectedFile().getPath();
+                                    System.out.println(imgSource[0]);
                                     iconLabel.setIcon(new ImageIcon(img));
                                 } else {
                                     Image img2 = ImageIO.read(new URL("https://avatars.githubusercontent.com/u/154756433?v=4&size=64"));
                                     img2 = img2.getScaledInstance(200, 250, Image.SCALE_SMOOTH);
-                                    ImageIcon icon = new ImageIcon(img2);
                                     imgSource[0] = "https://avatars.githubusercontent.com/u/154756433?v=4&size=64";
                                     iconLabel.setIcon(new ImageIcon(img2));
                                 }

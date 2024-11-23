@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
 //Really Specific Order!
 //DO NOT ALTER!
 
-// 0 = Open Password Eye | 1 = Closed Password Eye
+// 0 = Open Password Eye | 1 = Closed Password Eye | 2 = info button
 public final class EXTRA_Links {
     
     private static ArrayList<ImageIcon> icons = new ArrayList<>();
@@ -43,6 +43,11 @@ public final class EXTRA_Links {
     public static ImageIcon getPassClosedEye() {
         //doIt("https://cdn-icons-png.flaticon.com/128/9055/9055153.png");
         return icons.get(1);
+    }
+    
+    public static ImageIcon getInfoButton() {
+        //doIt("https://www.iconsdb.com/icons/preview/blue/info-xxl.png");
+        return icons.get(2);
     }
     
     

@@ -12,10 +12,10 @@ import java.sql.*;
 import java.util.Properties;
 
 public class Stats {
-    
+    //TODO: Upgrade (more features)
     public static void main(String[] args) throws SQLException, IOException, InterruptedException {
-        showUser("Dan");
-        //showStats(0);
+        // e.g showUser(true, true, "Bro3");
+        //e.g showStats(1);
     }
     
     static MysqlDataSource ds;
@@ -40,7 +40,7 @@ public class Stats {
         ds.setPassword(props.getProperty("pass"));
     }
     
-    public static void showStats(int timeout) throws IOException, SQLException, InterruptedException {
+    private static void showStats(int timeout) throws IOException, SQLException, InterruptedException {
         String query = "SELECT * FROM storefront%s.user";
         
         Connection conn = ds.getConnection();
@@ -55,18 +55,18 @@ public class Stats {
             System.out.println("size = " + md.getColumnCount()/3);
             
             while (rs.next()) {
-                System.out.println("-".repeat(20));
-                System.out.println("ID: " + rs.getInt(1));
-                System.out.println("NAME: " + rs.getString("user_name"));
-                System.out.println("PASS: " + rs.getString("user_pass"));
-                System.out.println("LINK: " + rs.getString("user_link"));
+                    System.out.println("-".repeat(20));
+                    System.out.println("ID: " + rs.getInt(1));
+                    System.out.println("NAME: " + rs.getString("user_name"));
+                    System.out.println("PASS: " + rs.getString("user_pass"));
+                    System.out.println("LINK: " + rs.getString("user_link"));
                 Thread.sleep(timeout* 1000L);
             }
             System.out.println("-".repeat(20));
         }
     }
     
-    public static void showUser(String... username) throws SQLException {
+    private static void showUser(boolean delete, boolean show, String... username) throws SQLException {
         try (var sessionFactory = Persistence
                 .createEntityManagerFactory("storefront"+props2.get(username[0]));
         EntityManager em = sessionFactory.createEntityManager()) {
@@ -81,7 +81,12 @@ public class Stats {
                 User user = query.getSingleResultOrNull();
                 
                 if (user != null) {
-                    System.out.println(user);
+                    if (show) System.out.println(user);
+                    if (delete) {
+                        em.remove(user);
+                        props2.remove(user);
+                    }
+                    
                 } else System.out.println(name + " wasn't found!");
             }
             transaction.commit();

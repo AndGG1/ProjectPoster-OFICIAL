@@ -65,6 +65,30 @@ public class User {
         return description;
     }
     
+    public void setImg(String img) {
+        this.img = img;
+    }
+    
+    public void setId(int id) {
+        this.id = id;
+    }
+    
+    public void setUsername(String username) {
+        this.username = username;
+    }
+    
+    public void setPass(String pass) {
+        this.pass = pass;
+    }
+    
+    public void setLink(String link) {
+        this.link = link;
+    }
+    
+    public void setDescription(String description) {
+        this.description = description;
+    }
+    
     @Override
     public String toString() {
         return new StringJoiner(", ", User.class.getSimpleName() + "[", "]")

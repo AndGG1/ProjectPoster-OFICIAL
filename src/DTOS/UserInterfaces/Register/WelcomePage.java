@@ -1,12 +1,23 @@
 package DTOS.UserInterfaces.Register;
 
+import DTOS.EXTRA_Links;
+
+import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.plaf.basic.BasicOptionPaneUI;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class WelcomePage {
     JFrame frame;
@@ -24,32 +35,51 @@ public class WelcomePage {
         JLabel attach1 = new JLabel();
         attach1.setBackground(Color.LIGHT_GRAY);
         attach1.setOpaque(true);
-        attach1.setBounds(18, 10, 1164, 530); // Adjusted bounds to fit the larger frame
+        attach1.setBounds(18, 10, 1150, 530); // Adjusted bounds to fit the larger frame
         frame.add(attach1);
         
-        if (!img.equals("https://avatars.githubusercontent.com/u/154756433?v=4&size=64")) {
-            // Placeholder for circle image with icon
-            CircleImagePanel imagePanel = new CircleImagePanel("/path/to/your/image.png", false);
-            imagePanel.setBounds(500, 50, 200, 200); // Increased size and positioned higher
-            attach1.add(imagePanel);
-        } else {
-            // Example of web image URL
-            CircleImagePanel webImagePanel = new CircleImagePanel(img, true);
-            webImagePanel.setBounds(500, 50, 200, 200); // Increased size and positioned higher
-            attach1.add(webImagePanel);
-        }
+        boolean flag = true;
+        if (!img.equals("https://avatars.githubusercontent.com/u/154756433?v=4&size=64")) flag = false;
+        // Example of web image URL
+        
+        CircleImagePanel webImagePanel = new CircleImagePanel(img, flag);
+        webImagePanel.setBounds(500, 50, 200, 200); // Increased size and positioned higher
+        attach1.add(webImagePanel);
+        
         
         // Text label saying "Welcome, username!"
         JLabel welcomeLabel = new JLabel("Welcome, " + name + "!", SwingConstants.CENTER);
         welcomeLabel.setFont(new Font("Arial", Font.BOLD, 24)); // Set font and size
         welcomeLabel.setBounds(500, 270, 200, 50); // Position the label close to the image
         attach1.add(welcomeLabel);
-    }
-    
-    public static void main(String[] args) {
-        new WelcomePage("https://avatars.githubusercontent.com/u/154756433?v=4&size=64", "username", "description");
+        
+        
+        // Add info button to the bottom right corner
+        JButton infoButton = new JButton();
+        try {
+            Image img2 = ImageIO.read(new URL("https://www.iconsdb.com/icons/preview/blue/info-xxl.png"));
+            img2 = img2.getScaledInstance(60, 60, Image.SCALE_SMOOTH);
+            infoButton.setIcon(new ImageIcon(img2));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        infoButton.setBounds(1080, 465, 64, 64); // Adjust the size and position
+        infoButton.setContentAreaFilled(false);
+        infoButton.setFocusPainted(false);
+        infoButton.setBorderPainted(false);
+        attach1.add(infoButton);
+        
+        
+        infoButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+            
+            }
+        });
     }
 }
+
+
 
 class CircleImagePanel extends JPanel {
     private BufferedImage image;
@@ -61,13 +91,8 @@ class CircleImagePanel extends JPanel {
                 URL imgUrl = new URL(imagePath);
                 image = javax.imageio.ImageIO.read(imgUrl);
             } else {
-                // Load image from local file
-                URL imgUrl = getClass().getResource(imagePath);
-                if (imgUrl != null) {
-                    image = javax.imageio.ImageIO.read(imgUrl);
-                } else {
-                    System.err.println("Error: Unable to find image at " + imagePath);
-                }
+                File returnVal = new File(imagePath);
+                image = ImageIO.read(returnVal);
             }
         } catch (MalformedURLException e) {
             System.err.println("Error: Invalid URL " + imagePath);

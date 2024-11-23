@@ -8,6 +8,8 @@ public final class Consistency {
     SignInView signIn;
     LogInView logIn;
     
+    String img = "";
+    
     public boolean isSign() {
         return isSign;
     }
@@ -38,5 +40,13 @@ public final class Consistency {
     
     public void setLogIn(LogInView logIn) {
         this.logIn = logIn;
+    }
+    
+    public String getImg() {
+        return img;
+    }
+    
+    public void setImg(String img) {
+        this.img = img;
     }
 }
