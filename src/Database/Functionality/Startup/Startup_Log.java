@@ -14,50 +14,47 @@ import java.sql.Statement;
 import java.util.Properties;
 
 public class Startup_Log {
-    
-    private static Properties props = new Properties();
-    private static Properties props2 = new Properties();
+    private static Properties userProperties = new Properties();
+    private static Properties serverProperties = new Properties();
     private static User user;
     
     public static boolean searchUser(String username) {
         try {
-            props.load(Files.newInputStream(Path.of("users.properties")));
-            return props.getProperty(username) != null;
+            userProperties.load(Files.newInputStream(Path.of("users.properties"), StandardOpenOption.READ));
+            return userProperties.getProperty(username) != null;
         } catch (IOException e) {
-            e.printStackTrace();  // Print stack trace for better debugging
+            e.printStackTrace();
             return false;
         }
     }
     
     public static boolean checkUser(String username, String password) {
-        // Getting the props. needed to access the Server in a secure way.
         try {
-            props2.load(Files.newInputStream(Path.of("storefront.properties"), StandardOpenOption.READ));
+            serverProperties.load(Files.newInputStream(Path.of("storefront.properties"), StandardOpenOption.READ));
         } catch (IOException e) {
             e.printStackTrace();
             return false;
         }
         
-        // Ensuring the database name is correctly retrieved
-        String databaseName = "storefront" + props.getProperty(username);
+        String databaseName = "storefront" + userProperties.getProperty(username);
         if (databaseName == null) {
             System.out.println("Database name not found for username: " + username);
             return false;
         }
         
         String query = String.format("SELECT * FROM %s.user WHERE user_name='%s' AND user_pass='%s'", databaseName, username, password);
+        System.out.println("Query: " + query);
         
-        var ds = new MysqlDataSource();
+        MysqlDataSource ds = new MysqlDataSource();
         ds.setServerName("localhost");
-        ds.setPort(3306);
-        ds.setUser(props2.getProperty("user"));  // Make sure these properties are set correctly
-        ds.setPassword(props2.getProperty("pass"));
+        ds.setPortNumber(3306);
+        ds.setUser(serverProperties.getProperty("user")); // Ensure these properties match persistence.xml
+        ds.setPassword(serverProperties.getProperty("pass"));
         
         try (Connection conn = ds.getConnection();
              Statement st = conn.createStatement();
-             ResultSet rs = st.executeQuery(query)) {  // Ensure ResultSet is properly managed
+             ResultSet rs = st.executeQuery(query)) {
             
-            // Process the ResultSet
             if (rs.next()) {
                 user = new User(
                         rs.getString("user_name"),
@@ -71,7 +68,7 @@ public class Startup_Log {
                 return true;
             } else {
                 System.out.println("No user found with the given username and password.");
-                return false;  // No user found with the given username and password
+                return false;
             }
             
         } catch (SQLException e) {

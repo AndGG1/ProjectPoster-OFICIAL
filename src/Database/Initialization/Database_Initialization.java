@@ -22,7 +22,7 @@ public class Database_Initialization {
         Properties props = new Properties();
         props.load(Files.newInputStream(Path.of("storefront.properties"),
                 StandardOpenOption.READ));
-        String persistence = Files.readString(Path.of("META-INF/persistence.xml"));
+        String persistence = Files.readString(Path.of("persistence.xml"));
         
         var ds = new MysqlDataSource();
         ds.setServerName("localhost");

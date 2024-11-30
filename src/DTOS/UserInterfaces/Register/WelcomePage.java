@@ -1,10 +1,7 @@
 package DTOS.UserInterfaces.Register;
 
-import DTOS.EXTRA_Links;
-
 import javax.imageio.ImageIO;
 import javax.swing.*;
-import javax.swing.plaf.basic.BasicOptionPaneUI;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -14,10 +11,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class WelcomePage {
     JFrame frame;
@@ -50,7 +43,7 @@ public class WelcomePage {
         // Text label saying "Welcome, username!"
         JLabel welcomeLabel = new JLabel("Welcome, " + name + "!", SwingConstants.CENTER);
         welcomeLabel.setFont(new Font("Arial", Font.BOLD, 24)); // Set font and size
-        welcomeLabel.setBounds(500, 270, 200, 50); // Position the label close to the image
+        welcomeLabel.setBounds(400, 270, 400, 50); // Position the label close to the image
         attach1.add(welcomeLabel);
         
         
@@ -76,7 +69,22 @@ public class WelcomePage {
             
             }
         });
-    }
+        
+        
+        JButton closeButton = new JButton("Close");
+        closeButton.setFont(new Font(Font.MONOSPACED, Font.BOLD, 40));
+        closeButton.setBounds(500, 100, 200, 60);
+        closeButton.setContentAreaFilled(false);
+        closeButton.setBorderPainted(false);
+        closeButton.setFocusPainted(false);
+        attach1.add(closeButton);
+        
+        closeButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                frame.setVisible(false);
+            }
+        });
 }
 
 
@@ -125,4 +133,5 @@ class CircleImagePanel extends JPanel {
     public boolean isOpaque() {
         return false;
     }
+}
 }
