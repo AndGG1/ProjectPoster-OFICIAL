@@ -255,30 +255,34 @@ public class LogInView {
         
         
         confirmButton.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                boolean validUsername = Startup_Log.searchUser(nameField.getText());
-                boolean validPass = validUsername ?  Startup_Log.checkUser(nameField.getText(), String.valueOf(passField.getPassword())) : false;
-                System.out.println(validPass);
-
-                if (!validUsername && !validPass) {
-                    attach_Name.setBackground(Color.RED);
-                    attach_Pass.setBackground(Color.RED);
-                    return;
-                } else if (!validPass) {
-                    attach_Name.setBackground(Color.GRAY);
-                    attach_Pass.setBackground(Color.RED);
-                    return;
+                @Override
+                public void mouseClicked (MouseEvent e) {
+                    Runnable myRUnnable = () -> {
+                        boolean validUsername = Startup_Log.searchUser(nameField.getText());
+                        boolean validPass = validUsername ? Startup_Log.checkUser(nameField.getText(), String.valueOf(passField.getPassword())) : false;
+                        System.out.println(validPass);
+                        
+                        if (!validUsername && !validPass) {
+                            attach_Name.setBackground(Color.RED);
+                            attach_Pass.setBackground(Color.RED);
+                            return;
+                        } else if (!validPass) {
+                            attach_Name.setBackground(Color.GRAY);
+                            attach_Pass.setBackground(Color.RED);
+                            return;
+                        }
+                        attach_Name.setBackground(Color.GRAY);
+                        attach_Pass.setBackground(Color.GRAY);
+                        frame.dispose();
+                        
+                        User user = Startup_Log.getUser();
+                        System.out.println(user + "-");
+                        System.out.println(user.getImg());
+                        new WelcomePage(user.getImg(), user.getUsername(), user.getDescription());
+                    };
+                    Thread newThread = new Thread(myRUnnable);
+                    newThread.start();
                 }
-                attach_Name.setBackground(Color.GRAY);
-                attach_Pass.setBackground(Color.GRAY);
-                frame.dispose();
-                
-                User user = Startup_Log.getUser();
-                System.out.println(user + "-");
-                System.out.println(user.getImg());
-                new WelcomePage(user.getImg(), user.getUsername(), user.getDescription());
-            }
         });
         
         

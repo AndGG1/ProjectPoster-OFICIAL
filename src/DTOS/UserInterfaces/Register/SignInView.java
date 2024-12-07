@@ -3,7 +3,6 @@ package DTOS.UserInterfaces.Register;
 import DTOS.EXTRA_Links;
 import Database.Functionality.Startup.Startup_Log;
 import Database.Functionality.Startup.Startup_Sign;
-import Database.Functionality.Stats;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -12,7 +11,6 @@ import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.sql.SQLException;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
@@ -449,34 +447,38 @@ public class SignInView {
         confirmButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                boolean flag = false;
-
-                if (nameField.getText().replaceAll(" ", "").length() < 3) {
-                    flag = true;
-                    attach_Name.setBackground(Color.RED);
-                } else attach_Name.setBackground(Color.GRAY);
-
-                if (passField.getText().length() < 6) {
-                    flag = true;
-                    attach_Pass.setBackground(Color.RED);
-                } else attach_Pass.setBackground(Color.GRAY);
-
-                //Needed to create a variable as the if-statement was getting confusing by the method
-                boolean bool = EXTRA_Links.checkAbilityToCreate(linkField.getText());
-                if (!bool) {
-                    flag = true;
-                    attach_Link.setBackground(Color.RED);
-                } else attach_Link.setBackground(Color.GRAY);
-                
-
-                if (flag) {
-                    System.out.println("Ooops! Something Went Wrong!");
-                    return;
-                }
-                if (!Startup_Log.searchUser(nameField.getText())) {
-                    Startup_Sign.addUser(nameField.getText(), String.valueOf(passField.getPassword()), linkField.getText(), imgSource[0], descriptionArea.getText());
-                    System.out.println("Successfully Added User: " + nameField.getText());
-                }
+                Runnable myRunnable = () -> {
+                    boolean flag = false;
+                    
+                    if (nameField.getText().replaceAll(" ", "").length() < 3) {
+                        flag = true;
+                        attach_Name.setBackground(Color.RED);
+                    } else attach_Name.setBackground(Color.GRAY);
+                    
+                    if (passField.getText().length() < 6) {
+                        flag = true;
+                        attach_Pass.setBackground(Color.RED);
+                    } else attach_Pass.setBackground(Color.GRAY);
+                    
+                    //Needed to create a variable as the if-statement was getting confusing by the method
+                    boolean bool = EXTRA_Links.checkAbilityToCreate(linkField.getText());
+                    if (!bool) {
+                        flag = true;
+                        attach_Link.setBackground(Color.RED);
+                    } else attach_Link.setBackground(Color.GRAY);
+                    
+                    
+                    if (flag) {
+                        System.out.println("Ooops! Something Went Wrong!");
+                        return;
+                    }
+                    if (!Startup_Log.searchUser(nameField.getText())) {
+                        Startup_Sign.addUser(nameField.getText(), String.valueOf(passField.getPassword()), linkField.getText(), imgSource[0], descriptionArea.getText());
+                        System.out.println("Successfully Added User: " + nameField.getText());
+                    }
+                };
+                Thread newThread = new Thread(myRunnable);
+                newThread.start();
             }
 
             @Override

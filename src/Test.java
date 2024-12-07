@@ -1,11 +1,9 @@
+import AI_Semi_Capable_Model.AI_Interface;
 import DTOS.EXTRA_Links;
 import DTOS.UserInterfaces.Register.SignInView;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Stack;
 
 public class Test {
 
@@ -17,8 +15,7 @@ public class Test {
         EXTRA_Links.doIt("https://www.iconsdb.com/icons/preview/blue/info-xxl.png");
         
         new SignInView();
-        
-        
+        //new AI_Interface();
     }
 }
 

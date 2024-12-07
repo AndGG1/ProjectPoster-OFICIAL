@@ -1,5 +1,7 @@
 package DTOS.UserInterfaces.Register;
 
+import AI_Semi_Capable_Model.AI_Interface;
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
@@ -66,7 +68,7 @@ public class WelcomePage {
         infoButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-            
+                new AI_Interface();
             }
         });
         
