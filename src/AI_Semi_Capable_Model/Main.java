@@ -1,5 +1,6 @@
 package AI_Semi_Capable_Model;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.swabunga.spell.engine.SpellDictionary;
 import com.swabunga.spell.engine.SpellDictionaryHashMap;
 import com.swabunga.spell.event.SpellChecker;
@@ -7,7 +8,13 @@ import com.swabunga.spell.event.StringWordTokenizer;
 
 import java.io.*;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -105,8 +112,10 @@ public class Main {
         if (strongSubject[0].equals("None")) {
             System.out.println("Couldn't find given content in the Q&A list! Searching the web...");
             String res = useContent(content, true, "").getKey();
+            String responseContent = GenerativeAI.generateAnswer(content);
             System.out.println(res + "-");
-            return res;
+            System.out.println(responseContent);
+            return res + "\n" + responseContent;
         } else {
             return memory.get(strongSubject[0]);
         }
@@ -202,5 +211,51 @@ public class Main {
         spellChecker.checkSpelling(tokenizer);
         
         return spellChecker.getSuggestions(word, 1).isEmpty();
+    }
+    
+    public class GenerativeAI {
+        private static String OPENAI_API_KEY;
+        private static final String OPENAI_ENDPOINT = "https://api-inference.huggingface.co/models/openai-community/gpt2";
+        
+        static {
+            Properties props = new Properties();
+            try {
+                props.load(Files.newInputStream(Path.of("storefront.properties")));
+                OPENAI_API_KEY = props.getProperty("KEY");
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        
+        private static String generateAnswer(String prompt) {
+            try {
+                Map<String, Object> requestBody = new HashMap<>();
+                requestBody.put("inputs", prompt);
+                
+                ObjectMapper objectMapper = new ObjectMapper();
+                String jsonRequestBody = objectMapper.writeValueAsString(requestBody);
+                
+                System.out.println(OPENAI_API_KEY);
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(OPENAI_ENDPOINT))
+                        .header("Content-Type", "application/json")
+                        .header("Authorization", "Bearer " + OPENAI_API_KEY)
+                        .POST(HttpRequest.BodyPublishers.ofString(jsonRequestBody))
+                        .build();
+                
+                HttpClient client = HttpClient.newHttpClient();
+                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+                
+                return response.body();
+            } catch (IOException | InterruptedException e) {
+                return "Couldn't generate answer! - " + e.getMessage();
+            }
+        }
+        
+        public static void main(String[] args) {
+            String prompt = "Tell me something interesting about Java";
+            String response = generateAnswer(prompt);
+            System.out.println(response);
+        }
     }
 }

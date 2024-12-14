@@ -1,4 +1,4 @@
-import AI_Semi_Capable_Model.AI_Interface;
+
 import DTOS.EXTRA_Links;
 import DTOS.UserInterfaces.Register.SignInView;
 
@@ -18,4 +18,3 @@ public class Test {
         //new AI_Interface();
     }
 }
-

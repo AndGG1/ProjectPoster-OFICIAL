@@ -1,8 +1,11 @@
 package Database.Functionality.Startup;
 
 import com.mysql.cj.jdbc.MysqlDataSource;
+import Database.Functionality.Startup.obj;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -18,11 +21,12 @@ public class Startup_Sign {
     public static void addUser(String username, String password, String link, String img, String description) {
         if (Startup_Log.searchUser(username)) return;
         
-        final var path = Path.of("users.properties");
+        final var path = Path.of("users.dat");
         try {
             props.load(Files.newInputStream(Path.of("storefront.properties"), StandardOpenOption.READ));
             props2.load(Files.newInputStream(path));
         } catch (IOException e) {
+            e.printStackTrace();
             return;
         }
         
@@ -47,9 +51,29 @@ public class Startup_Sign {
             ps.executeBatch();
             ps.clearBatch();
             
-            Files.writeString(path, "\n" + username + "=" + props.getProperty("id"), StandardOpenOption.APPEND);
+            appendUser(new obj(username, props.getProperty("id")));
         } catch (SQLException | IOException e) {
-            //do nothing
+            e.printStackTrace();
+        }
+    }
+    
+    private static void appendUser(obj user) throws IOException {
+        boolean append = Files.exists(Path.of("users.dat"));
+        try (FileOutputStream fos = new FileOutputStream("users.dat", true);
+             ObjectOutputStream oos = append ? new AppendObjectOutputStream(fos) : new ObjectOutputStream(fos)) {
+            oos.writeObject(user);
+            oos.flush();
+        }
+    }
+    
+    private static class AppendObjectOutputStream extends ObjectOutputStream {
+        public AppendObjectOutputStream(FileOutputStream fos) throws IOException {
+            super(fos);
+        }
+        
+        @Override
+        protected void writeStreamHeader() throws IOException {
+            reset(); // Avoid writing the header
         }
     }
 }

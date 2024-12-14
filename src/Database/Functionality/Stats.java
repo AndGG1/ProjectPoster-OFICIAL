@@ -28,7 +28,7 @@ public class Stats {
             final var path = Path.of("storefront.properties");
             id = Integer.parseInt(String.valueOf(Files.lines(path).toArray()[2].toString().charAt(5)));
             props.load(Files.newInputStream(path));
-            props2.load(Files.newInputStream(Path.of("users.properties")));
+            props2.load(Files.newInputStream(Path.of("users.dat")));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -74,11 +74,11 @@ public class Stats {
             var transaction = em.getTransaction();
             transaction.begin();
             
-            TypedQuery<User> query;
+            TypedQuery<Database.Functionality.User> query;
             for (String name : username) {
-                query = em.createQuery("SELECT u FROM User u WHERE u.username LIKE ?1", User.class);
+                query = em.createQuery("SELECT u FROM User u WHERE u.username LIKE ?1", Database.Functionality.User.class);
                 query.setParameter(1, "%"+name+"%");
-                User user = query.getSingleResultOrNull();
+                Database.Functionality.User user = query.getSingleResultOrNull();
                 
                 if (user != null) {
                     if (show) System.out.println(user);
