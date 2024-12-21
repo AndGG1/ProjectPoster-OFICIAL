@@ -1,6 +1,5 @@
 package Database.Initialization;
 
-import com.mysql.cj.jdbc.DatabaseMetaData;
 import com.mysql.cj.jdbc.MysqlDataSource;
 
 import java.io.IOException;
@@ -18,11 +17,13 @@ public class Database_Initialization {
     private static String USE_SCHEMA = "USE storefront1";
     private static int MYSQL_DB_NOT_FOUND = 1049;
 
+    
+    
     public static void main(String[] args) throws IOException {
+        
         Properties props = new Properties();
         props.load(Files.newInputStream(Path.of("storefront.properties"),
                 StandardOpenOption.READ));
-        String persistence = Files.readString(Path.of("src/META-INF/persistence.xml"));
         
         var ds = new MysqlDataSource();
         ds.setServerName("localhost");
@@ -32,40 +33,39 @@ public class Database_Initialization {
 
         try (Connection conn = ds.getConnection()) {
 
-            DatabaseMetaData metaData = (DatabaseMetaData) conn.getMetaData();
-            System.out.println(metaData.getSQLStateType());
-            System.out.println(metaData.getConnection());
-
             int id = Integer.parseInt(props.getProperty("id"));
             if (!checkSchema(conn)) {
                 System.out.println("storefront1 schema does not exist! :)");
                 setUpSchema(conn, id);
             } else {
                 
-                if (shouldCreateNewDatabase(conn, id+"")) {
+                if (shouldCreateNewDatabase(conn)) {
                     System.out.println("The Schema does already exist! :( --> Creating a new one...");
-                    setUpSchema(conn, id + 1);
-                    props.setProperty("id", id + 1 + "");
+                    setUpSchema(conn, id+1);
                     
+                    Files.writeString(Path.of("storefront.properties"), """
+                            user = And_GG
+                            pass = ER86Yt42
+                            KEY=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
+                            id = %s
+                            """.formatted(id+1));
                     
-                    StringBuilder appendTo = new StringBuilder(persistence.split("</properties>")[0]);
                     String p1 = """
-                             <property name="jakarta.persistence.jdbc.driver" value="com.mysql.cj.jdbc.Driver" />
-                             <property name="jakarta.persistence.jdbc.url"    value="jdbc:mysql://localhost:3306/storefront%s" />
-                             <property name="jakarta.persistence.jdbc.user"   value="And_GG" />
-                             <property name="jakarta.persistence.jdbc.password" value="ER86Yt42" />"""
-                            .formatted(props.getProperty("id"));
-                    
-                    String p2 = """
+                                
+                                <persistence-unit name="storefront%1$s">
+                            
+                                    <properties>
+                                        <property name="jakarta.persistence.jdbc.driver" value="com.mysql.cj.jdbc.Driver" />
+                                        <property name="jakarta.persistence.jdbc.url"    value="jdbc:mysql://localhost:3306/storefront%1$s" />
+                                        <property name="jakarta.persistence.jdbc.user"   value="And_GG" />
+                                        <property name="jakarta.persistence.jdbc.password" value="ER86Yt42" />
+                            
                                     </properties>
                             
                                 </persistence-unit>
                             </persistence>
-                            """;
-                    appendTo.append(p1);
-                    Files.writeString(Path.of("persistence.xml"), p1 + "\n" + p2);
-                    
-                    
+                            """.formatted(props.getProperty("id"));
+                    Files.writeString(Path.of("persistence.xml"), Files.readString(Path.of("persistence.xml")).replace("</persistence>", "") + "\n" + p1);
                     resetFlag(conn);
                     
                 } else System.out.println("Failed to create a new database!" +
@@ -125,9 +125,9 @@ public class Database_Initialization {
         }
     }
     
-    private static boolean shouldCreateNewDatabase(Connection conn, String id) throws SQLException {
+    private static boolean shouldCreateNewDatabase(Connection conn) throws SQLException {
         try (Statement st = conn.createStatement()) {
-            ResultSet rs = st.executeQuery("SELECT create_new_db FROM storefront" + id + ".db_config WHERE id = 1");
+            ResultSet rs = st.executeQuery("SELECT create_new_db FROM storefront1.db_config WHERE id = 1");
             
             if (rs.next()) {
                 return rs.getInt("create_new_db") == 1;
