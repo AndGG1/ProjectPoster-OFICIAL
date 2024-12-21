@@ -1,11 +1,8 @@
 package Database.Functionality.Startup;
 
 import com.mysql.cj.jdbc.MysqlDataSource;
-import Database.Functionality.Startup.obj;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -21,12 +18,11 @@ public class Startup_Sign {
     public static void addUser(String username, String password, String link, String img, String description) {
         if (Startup_Log.searchUser(username)) return;
         
-        final var path = Path.of("users.dat");
+        final var path = Path.of("users.properties");
         try {
             props.load(Files.newInputStream(Path.of("storefront.properties"), StandardOpenOption.READ));
             props2.load(Files.newInputStream(path));
         } catch (IOException e) {
-            e.printStackTrace();
             return;
         }
         
@@ -51,29 +47,23 @@ public class Startup_Sign {
             ps.executeBatch();
             ps.clearBatch();
             
-            appendUser(new obj(username, props.getProperty("id")));
+            Files.writeString(path, "\n" + serializeObject(username) + "=" + props.getProperty("id"), StandardOpenOption.APPEND);
         } catch (SQLException | IOException e) {
-            e.printStackTrace();
+            //do nothing
         }
     }
     
-    private static void appendUser(obj user) throws IOException {
-        boolean append = Files.exists(Path.of("users.dat"));
-        try (FileOutputStream fos = new FileOutputStream("users.dat", true);
-             ObjectOutputStream oos = append ? new AppendObjectOutputStream(fos) : new ObjectOutputStream(fos)) {
-            oos.writeObject(user);
-            oos.flush();
-        }
-    }
-    
-    private static class AppendObjectOutputStream extends ObjectOutputStream {
-        public AppendObjectOutputStream(FileOutputStream fos) throws IOException {
-            super(fos);
-        }
+    public static String serializeObject(String username) {
+        int len = username.length() + 21;
+        StringBuilder res = new StringBuilder(len * 112 + (len + 2) + "_.T" + len + username.charAt(0) + username.charAt(1) + len + "Binary(_//-)" + len * 11);
         
-        @Override
-        protected void writeStreamHeader() throws IOException {
-            reset(); // Avoid writing the header
+        for (char ch : username.toCharArray()) {
+            int val = (int) ch;
+            res.append(val);
+            if (val >= 70) res.append("Ljk").append(val * 11).append("&&Encxtyu");
+            len += val*11;
         }
+        res.append(len).append("SsS-/..,").append(len * 2);
+        return res.toString();
     }
 }

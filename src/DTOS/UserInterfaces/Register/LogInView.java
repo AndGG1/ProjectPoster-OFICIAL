@@ -278,7 +278,7 @@ public class LogInView {
                         User user = Startup_Log.getUser();
                         System.out.println(user + "-");
                         System.out.println(user.getImg());
-                        new WelcomePage(user.getImg(), user.getUsername(), user.getDescription());
+                        new WelcomePage(user.getImg() == null ? "https://avatars.githubusercontent.com/u/154756433?v=4&size=64" : user.getImg(), user.getUsername(), user.getDescription());
                     };
                     Thread newThread = new Thread(myRUnnable);
                     newThread.start();

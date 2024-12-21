@@ -250,6 +250,7 @@ public class SignInView {
 
         //Icon Label Listeners
         final String[] imgSource = new String[1];
+        System.out.println(imgSource[0]);
         iconLabel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -472,12 +473,22 @@ public class SignInView {
                         System.out.println("Ooops! Something Went Wrong!");
                         return;
                     }
-                    if (!Startup_Log.searchUser(nameField.getText())) {
-                        Startup_Sign.addUser(nameField.getText(), String.valueOf(passField.getPassword()), linkField.getText(), imgSource[0], descriptionArea.getText());
-                        System.out.println("Successfully Added User: " + nameField.getText());
+                    synchronized (this) {
+                        if (!Startup_Log.searchUser(nameField.getText())) {
+                            Startup_Sign.addUser(nameField.getText(), String.valueOf(passField.getPassword()), linkField.getText(), imgSource[0], descriptionArea.getText());
+                            System.out.println("Successfully Added User: " + nameField.getText());
+                            
+                            new WelcomePage(imgSource[0] == null ? "https://avatars.githubusercontent.com/u/154756433?v=4&size=64" : imgSource[0], nameField.getText(), descriptionArea.getText());
+                            frame.dispose();
+                        }
                     }
                 };
                 Thread newThread = new Thread(myRunnable);
+                newThread.setUncaughtExceptionHandler((thread, exc) -> {
+//                    System.out.println(newThread.getName() + " got a problem!");
+//                    System.out.println("Exc: " + exc);
+                    newThread.interrupt();
+                });
                 newThread.start();
             }
 

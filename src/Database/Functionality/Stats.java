@@ -1,5 +1,6 @@
 package Database.Functionality;
 
+import Database.Functionality.Startup.Startup_Sign;
 import com.mysql.cj.jdbc.MysqlDataSource;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Persistence;
@@ -15,7 +16,7 @@ public class Stats {
     //TODO: Upgrade (more features)
     public static void main(String[] args) throws SQLException, IOException, InterruptedException {
         // e.g showUser(true, true, "Bro3");
-        //e.g showStats(1);
+        showStats(0);
     }
     
     static MysqlDataSource ds;
@@ -28,7 +29,7 @@ public class Stats {
             final var path = Path.of("storefront.properties");
             id = Integer.parseInt(String.valueOf(Files.lines(path).toArray()[2].toString().charAt(5)));
             props.load(Files.newInputStream(path));
-            props2.load(Files.newInputStream(Path.of("users.dat")));
+            props2.load(Files.newInputStream(Path.of("users.properties")));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -66,25 +67,36 @@ public class Stats {
         }
     }
     
-    private static void showUser(boolean delete, boolean show, String... username) throws SQLException {
+    //TODO
+    private static void showUser(boolean delete, boolean deleteAll, boolean show, String... username) throws SQLException {
         try (var sessionFactory = Persistence
-                .createEntityManagerFactory("storefront"+props2.get(username[0]));
+                .createEntityManagerFactory("storefront" + props2.getProperty(Startup_Sign.serializeObject(username[0])));
         EntityManager em = sessionFactory.createEntityManager()) {
             
             var transaction = em.getTransaction();
             transaction.begin();
             
-            TypedQuery<Database.Functionality.User> query;
+            if (deleteAll) {
+                for (int i = 1; i <= Integer.parseInt(props.getProperty("id")); i++) {
+                    TypedQuery<User> query = em.createQuery("DELETE FROM storefront" + i + ".user", User.class);
+                    query.executeUpdate();
+                    transaction.commit();
+                }
+                em.close();
+                return;
+            }
+            
+            TypedQuery<User> query;
             for (String name : username) {
-                query = em.createQuery("SELECT u FROM User u WHERE u.username LIKE ?1", Database.Functionality.User.class);
+                query = em.createQuery("SELECT u FROM User u WHERE u.username LIKE ?1", User.class);
                 query.setParameter(1, "%"+name+"%");
-                Database.Functionality.User user = query.getSingleResultOrNull();
+                User user = query.getSingleResultOrNull();
                 
                 if (user != null) {
                     if (show) System.out.println(user);
                     if (delete) {
                         em.remove(user);
-                        props2.remove(user);
+                        props2.remove(Startup_Sign.serializeObject(user.getUsername()));
                     }
                     
                 } else System.out.println(name + " wasn't found!");
