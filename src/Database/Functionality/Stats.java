@@ -11,12 +11,25 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.*;
 import java.util.Properties;
+import java.util.Scanner;
 
 public class Stats {
     //TODO: Upgrade (more features)
     public static void main(String[] args) throws SQLException, IOException, InterruptedException {
-        // e.g showUser(true, true, "Bro3");
-        showStats(0);
+        Scanner scanner = new Scanner(System.in);
+        
+        while (scanner.hasNextLine()) {
+            String line = scanner.nextLine();
+            if (line.contains("INDEX: ") || line.contains("POS: ")) {
+                System.out.println(line.split(": ")[1] + ": " + getIndex(line.split(": ")[1]));
+            } else if (line.contains("SHOW ALL: ") || line.contains("USERS: ") || line.contains("PEEK ALL: ")) {
+                showStats(Integer.parseInt(line.split(": ")[1]));
+            } else if (line.contains("DELETE ALL: ")) {
+                if (line.split(": ")[1].split(" - ")[0].equals(props.getProperty("pass")) && line.split(": ")[1].contains(" - ")) {
+                    deleteAll(1, Boolean.parseBoolean(line.split(" - ")[1]));
+                }
+            }
+        }
     }
     
     static MysqlDataSource ds;
@@ -27,7 +40,7 @@ public class Stats {
     static {
         try {
             final var path = Path.of("storefront.properties");
-            id = Integer.parseInt(String.valueOf(Files.lines(path).toArray()[2].toString().charAt(5)));
+            id = Integer.parseInt(String.valueOf(Files.lines(path).toArray()[3].toString().charAt(5)));
             props.load(Files.newInputStream(path));
             props2.load(Files.newInputStream(Path.of("users.properties")));
         } catch (IOException e) {
@@ -67,24 +80,14 @@ public class Stats {
         }
     }
     
-    //TODO
-    private static void showUser(boolean delete, boolean deleteAll, boolean show, String... username) throws SQLException {
+    private static void showUser(boolean delete, boolean show, String... username) throws SQLException {
+        
         try (var sessionFactory = Persistence
                 .createEntityManagerFactory("storefront" + props2.getProperty(Startup_Sign.serializeObject(username[0])));
         EntityManager em = sessionFactory.createEntityManager()) {
             
             var transaction = em.getTransaction();
             transaction.begin();
-            
-            if (deleteAll) {
-                for (int i = 1; i <= Integer.parseInt(props.getProperty("id")); i++) {
-                    TypedQuery<User> query = em.createQuery("DELETE FROM storefront" + i + ".user", User.class);
-                    query.executeUpdate();
-                    transaction.commit();
-                }
-                em.close();
-                return;
-            }
             
             TypedQuery<User> query;
             for (String name : username) {
@@ -105,5 +108,25 @@ public class Stats {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+    
+    private static void deleteAll(int index, boolean showAll) throws SQLException, IOException, InterruptedException {
+        try (var sessionFactory = Persistence.createEntityManagerFactory("storefront" + index);
+        EntityManager em = sessionFactory.createEntityManager()) {
+            
+            var transaction = em.getTransaction();
+            transaction.begin();
+                TypedQuery<User> query = em.createQuery("DELETE FROM storefront" + index + ".user", User.class);
+                query.executeUpdate();
+                transaction.commit();
+            transaction.commit();
+        } finally {
+            System.out.println("Deletion worked successfully");
+            if (showAll) showStats(1);
+        }
+    }
+    
+    private static String getIndex(String username) {
+        return props2.getProperty(Startup_Sign.serializeObject(username));
     }
 }

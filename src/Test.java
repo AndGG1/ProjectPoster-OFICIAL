@@ -1,9 +1,6 @@
 
-import AI_Semi_Capable_Model.AI_Interface;
 import DTOS.EXTRA_Links;
-import DTOS.UserInterfaces.Register.LogInView;
 import DTOS.UserInterfaces.Register.SignInView;
-import DTOS.UserInterfaces.Register.WelcomePage;
 
 import java.io.IOException;
 import java.sql.SQLException;
