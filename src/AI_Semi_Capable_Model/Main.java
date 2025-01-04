@@ -31,6 +31,10 @@ public class Main {
         }
     }
     
+    public static void main(String[] args) {
+        new AI_Interface();
+    }
+    
     private static final String recoverAccount = """
             RecoverAccount description...
             In developing
@@ -102,7 +106,7 @@ public class Main {
         AtomicLong count = new AtomicLong(1);
         
         memory.forEach((k, chunk) -> {
-            Map.Entry<String, Long> result = (Map.Entry<String, Long>) useContent(content, false, chunk);
+            Map.Entry<String, Long> result = useContent(content, false, chunk);
             if (!result.getKey().equals("None") && count.get() < result.getValue()) {
                 strongSubject[0] = k;
                 count.set(result.getValue());
@@ -110,16 +114,14 @@ public class Main {
         });
         
         if (strongSubject[0].equals("None")) {
-            System.out.println("Couldn't find given content in the Q&A list! Searching the web...");
             String res = useContent(content, true, "").getKey();
             String responseContent = GenerativeAI.generateAnswer(content);
-            System.out.println(res + "-");
-            System.out.println(responseContent);
-            return res + "\n" + responseContent;
+            memory.put(memory.size() + "", content);
+            
+            return res + "\n\n" + responseContent;
         } else {
             return memory.get(strongSubject[0]);
         }
-        //memory.put(memory.size() + "", content);
     }
     
     private static List<Map.Entry<String, Integer>> fetchContent(String content) {
@@ -246,7 +248,7 @@ public class Main {
                 HttpClient client = HttpClient.newHttpClient();
                 HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
                 
-                return response.body();
+                return response.body().substring(2, Math.min(response.body().length(), 200));
             } catch (IOException | InterruptedException e) {
                 return "Couldn't generate answer! - " + e.getMessage();
             }

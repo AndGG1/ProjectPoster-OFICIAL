@@ -10,10 +10,13 @@ import java.awt.event.FocusEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class AI_Interface {
     private final JFrame frame;
@@ -85,20 +88,55 @@ public class AI_Interface {
         attach1.revalidate();
         attach1.repaint();
         
+        ExecutorService executorService = Executors.newFixedThreadPool(5);
         iconLabel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (e.getButton() != 1) return;
+                AtomicReference<AtomicInteger> count = new AtomicReference<>(new AtomicInteger());
                 
-                Runnable myRunnable = () -> {
-                    String content = Main.call(nameField.getText());
-                    System.out.println(content);
-                    descriptionArea.append("\n" + "-".repeat(100) + "\n" + content);
-                    descriptionArea.append("\n" + "Ran on: " + LocalDateTime.now(ZoneId.systemDefault()).format(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL)));
-                    nameField.setText("");
-                };
-                Thread newThread = new Thread(myRunnable);
-                newThread.start();
+                try {
+                    Runnable myRunnable = () -> {
+                        synchronized (this) {
+                            String content = Main.call(nameField.getText());
+                            descriptionArea.append("\n" + "-".repeat(100) + "\n" + content);
+                            descriptionArea.append("\n\n" + "Ran on: " + LocalDateTime.now(ZoneId.systemDefault()).format(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL)));
+                        }
+                    };
+                    Thread mainThread = new Thread(myRunnable);
+                    mainThread.start();
+                    
+                    Runnable animationRunnable = () -> {
+                        synchronized (descriptionArea) {
+                            descriptionArea.append("\n");
+                            while (mainThread.isAlive()) {
+                                try {
+                                    if (count.get().get() == 30) {
+                                        mainThread.interrupt();
+                                        
+                                        //Cleaning Data:
+                                        count.set(null);
+                                        break;
+                                    }
+                                    
+                                    Thread.sleep(300);
+                                    
+                                    count.get().getAndIncrement();
+                                    if (descriptionArea.getText().contains("..."))
+                                        descriptionArea.setText(descriptionArea.getText().replace(".", ""));
+                                    descriptionArea.append(".");
+                                } catch (InterruptedException e2) {
+                                    //ignore
+                                }
+                            }
+                        }
+                        descriptionArea.setText(descriptionArea.getText().replace(".", ""));
+                    };
+                    executorService.execute(animationRunnable);
+                } catch (Exception exc) {
+                    descriptionArea.setText("Bad user input!");
+                    frame.dispose();
+                }
             }
         });
         
@@ -125,7 +163,7 @@ public class AI_Interface {
             public void focusGained(FocusEvent e) {
                 nameField.setText("");
             }
-            
+
             @Override
             public void focusLost(FocusEvent e) {
                 if (nameField.getText().isEmpty() || nameField.getText().isBlank()) nameField.setText("text...");

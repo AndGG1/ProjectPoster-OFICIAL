@@ -1,7 +1,7 @@
 package DTOS.UserInterfaces.Register;
 
 import AI_Semi_Capable_Model.AI_Interface;
-import Database.Functionality.User;
+import DTOS.EmailSender;
 import com.mysql.cj.jdbc.MysqlDataSource;
 
 import javax.imageio.ImageIO;
@@ -82,10 +82,14 @@ public class WelcomePage {
         infoButton.setBorderPainted(false);
         attach1.add(infoButton);
         
+        final int[] count = {0};
         infoButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                new AI_Interface();
+                count[0]++;
+                if (count[0] > 2) {
+                    new AI_Interface();
+                } else new EmailSender();
             }
         });
         
