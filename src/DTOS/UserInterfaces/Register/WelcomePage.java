@@ -13,6 +13,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
+import java.awt.image.ImageObserver;
+import java.awt.image.ImageProducer;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -82,14 +84,27 @@ public class WelcomePage {
         infoButton.setBorderPainted(false);
         attach1.add(infoButton);
         
-        final int[] count = {0};
+        JLabel label = new JLabel();
+        label.setBounds(1040, 425, 200, 200);
+        label.setOpaque(false);
+        label.setBackground(Color.GREEN);
+        frame.add(label);
+        
+        
+        JButton infoButtonEmail = new JButton();
+        JButton infoButtonAI = new JButton();
         infoButton.addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseClicked(MouseEvent e) {
-                count[0]++;
-                if (count[0] > 2) {
-                    new AI_Interface();
-                } else new EmailSender();
+            public void mouseEntered(MouseEvent e) {
+                infoButtonEmail.setVisible(true);
+                infoButtonAI.setVisible(true);
+            }
+        });
+        label.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseExited(MouseEvent e) {
+                infoButtonEmail.setVisible(false);
+                infoButtonAI.setVisible(false);
             }
         });
         
@@ -176,9 +191,9 @@ public class WelcomePage {
                     
                     cachedPool.execute(() -> {
                         try (Connection connection = ds.getConnection();
-                             var st = connection.createStatement()) {
+                            var st = connection.createStatement()) {
                             int rowsAffected = st.executeUpdate("UPDATE storefront1.user SET user_description = '%s' WHERE user_name = '%s'"
-                                    .formatted(descriptionArea.getText(), name));
+                                    .formatted(descriptionArea.getText().trim(), name));
                             if (rowsAffected > 0) {
                                 statusLabel.setText(success);
                                 statusLabel.setForeground(Color.GREEN);
@@ -203,6 +218,23 @@ public class WelcomePage {
                 }
             }
         });
+        
+        infoButtonEmail.setText("E");
+        infoButtonEmail.setBounds(1080, 435, 60, 32); // Adjust the size and position
+        infoButtonEmail.setContentAreaFilled(false);
+        infoButtonEmail.setFocusPainted(false);
+        infoButtonEmail.setBorderPainted(false);
+        attach1.add(infoButtonEmail);
+        
+        infoButtonAI.setText("AI");
+        infoButtonAI.setBounds(1035, 480, 60, 32); // Adjust the size and position
+        infoButtonAI.setContentAreaFilled(false);
+        infoButtonAI.setFocusPainted(false);
+        infoButtonAI.setBorderPainted(false);
+        attach1.add(infoButtonAI);
+        
+        infoButtonEmail.addActionListener(e -> new EmailSender());
+        infoButtonAI.addActionListener(e -> new AI_Interface());
     }
     
     class CircleImagePanel extends JPanel {

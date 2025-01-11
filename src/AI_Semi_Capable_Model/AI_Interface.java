@@ -17,9 +17,15 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class AI_Interface {
     private final JFrame frame;
+    
+    public static void main(String[] args) {
+        new AI_Interface();
+    }
     
     public AI_Interface() {
         // Main Part - Frame
@@ -76,67 +82,91 @@ public class AI_Interface {
         descriptionArea.setWrapStyleWord(true);
         descriptionArea.setEditable(false);
         
+        
         JScrollPane scrollPane = new JScrollPane(descriptionArea);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         scrollPane.setBounds(0, 0, 900, 900);
         attach1.add(scrollPane);
         
+        JButton clearButton = new JButton("X");
+        clearButton.setBounds(900, 20, 50, 50);
+        clearButton.setBackground(Color.RED);
+        clearButton.setFont(new Font("Arial", Font.BOLD, 20));
+        clearButton.getDisabledSelectedIcon();
+        clearButton.setBorderPainted(false);
+        clearButton.setFocusPainted(false);
+        attach1.add(clearButton);
+        
         
         attach1.setComponentZOrder(scrollPane, 0);
         attach1.setComponentZOrder(nameField, 0);
+        attach1.setComponentZOrder(clearButton, 0);
         attach1.revalidate();
         attach1.repaint();
         
+        final boolean[] isDefault = {true};
         ExecutorService executorService = Executors.newFixedThreadPool(5);
+        Lock mainLock = new ReentrantLock();
+        Lock animationLock = new ReentrantLock();
         iconLabel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (e.getButton() != 1) return;
+                if (isDefault[0]) return;
                 AtomicReference<AtomicInteger> count = new AtomicReference<>(new AtomicInteger());
-                
+                String s = nameField.getText();
                 try {
-                    Runnable myRunnable = () -> {
-                        synchronized (this) {
-                            String content = Main.call(nameField.getText());
-                            descriptionArea.append("\n" + "-".repeat(100) + "\n" + content);
-                            descriptionArea.append("\n\n" + "Ran on: " + LocalDateTime.now(ZoneId.systemDefault()).format(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL)));
-                        }
-                    };
-                    Thread mainThread = new Thread(myRunnable);
-                    mainThread.start();
-                    
-                    Runnable animationRunnable = () -> {
-                        synchronized (descriptionArea) {
-                            descriptionArea.append("\n");
-                            while (mainThread.isAlive()) {
-                                try {
-                                    if (count.get().get() == 30) {
-                                        mainThread.interrupt();
+                        Runnable myRunnable = () -> {
+                            synchronized (mainLock) {
+                                String content = Main.call(s);
+                                descriptionArea.append("\n" + "-".repeat(100) + "\n" + content);
+                                descriptionArea.append("\n\n" + "Ran on: " + LocalDateTime.now(ZoneId.systemDefault()).format(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL)));
+                                descriptionArea.setForeground(Color.BLACK);
+                            }
+                        };
+                        Thread mainThread = new Thread(myRunnable);
+                        mainThread.start();
+                        
+                        Runnable animationRunnable = () -> {
+                            synchronized (animationLock) {
+                                descriptionArea.append("\n\n");
+                                while (mainThread.isAlive()) {
+                                    try {
+                                        if (count.get().get() == 30) {
+                                            mainThread.interrupt();
+                                            
+                                            //Cleaning Data:
+                                            count.set(null);
+                                            break;
+                                        }
                                         
-                                        //Cleaning Data:
-                                        count.set(null);
-                                        break;
+                                        Thread.sleep(300);
+                                        
+                                        count.get().getAndIncrement();
+                                        if (descriptionArea.getText().contains("..."))
+                                            descriptionArea.setText(descriptionArea.getText().replace(".", ""));
+                                        descriptionArea.append(".");
+                                    } catch (InterruptedException e2) {
+                                        //ignore
                                     }
-                                    
-                                    Thread.sleep(300);
-                                    
-                                    count.get().getAndIncrement();
-                                    if (descriptionArea.getText().contains("..."))
-                                        descriptionArea.setText(descriptionArea.getText().replace(".", ""));
-                                    descriptionArea.append(".");
-                                } catch (InterruptedException e2) {
-                                    //ignore
                                 }
                             }
-                        }
-                        descriptionArea.setText(descriptionArea.getText().replace(".", ""));
-                    };
-                    executorService.execute(animationRunnable);
-                } catch (Exception exc) {
-                    descriptionArea.setText("Bad user input!");
-                    frame.dispose();
-                }
+                            descriptionArea.setText(descriptionArea.getText().replace(".", ""));
+                        };
+                        executorService.execute(animationRunnable);
+                    } catch(Exception exc){
+                        descriptionArea.setText("Bad user input!");
+                        frame.dispose();
+                    } finally {
+                        nameField.setText("text...");
+                        isDefault[0] = true;
+                        nameField.setFocusable(false);
+                        nameField.setFocusable(true);
+
+//                        mainLock.unlock();
+//                        animationLock.unlock();
+                    }
             }
         });
         
@@ -160,14 +190,23 @@ public class AI_Interface {
         
         nameField.addFocusListener(new FocusAdapter() {
             @Override
-            public void focusGained(FocusEvent e) {
-                nameField.setText("");
-            }
-
-            @Override
             public void focusLost(FocusEvent e) {
-                if (nameField.getText().isEmpty() || nameField.getText().isBlank()) nameField.setText("text...");
+                if (nameField.getText().isEmpty()) {
+                    nameField.setText("text...");
+                    isDefault[0] = true;
+                }
+            }
+            
+            @Override
+            public void focusGained(FocusEvent e) {
+                if (isDefault[0]) {
+                    nameField.setText("");
+                    isDefault[0] = false;
+                }
             }
         });
+        
+        // Add action listener to clear the descriptionArea when the button is clicked
+        clearButton.addActionListener(e -> descriptionArea.setText(""));
     }
 }

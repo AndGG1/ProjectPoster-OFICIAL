@@ -23,7 +23,7 @@ public class EmailSender {
         String serverHost = "your_host";
         
         JFrame frame = new JFrame("Email Sender");
-        //frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setLocationRelativeTo(null);
         frame.setResizable(false);
         frame.setSize(350, 150);
         

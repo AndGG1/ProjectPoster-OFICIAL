@@ -16,6 +16,8 @@ import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class Main {
@@ -99,29 +101,29 @@ public class Main {
     
     public static String call(String content) {
         
-        loadData(memory);
-        
-        String[] strongSubject = new String[1];
-        strongSubject[0] = "None";
-        AtomicLong count = new AtomicLong(1);
-        
-        memory.forEach((k, chunk) -> {
-            Map.Entry<String, Long> result = useContent(content, false, chunk);
-            if (!result.getKey().equals("None") && count.get() < result.getValue()) {
-                strongSubject[0] = k;
-                count.set(result.getValue());
-            }
-        });
-        
-        if (strongSubject[0].equals("None")) {
-            String res = useContent(content, true, "").getKey();
-            String responseContent = GenerativeAI.generateAnswer(content);
-            memory.put(memory.size() + "", content);
+            loadData(memory);
+            String[] strongSubject = new String[1];
+            strongSubject[0] = "Subject not found!";
+            AtomicLong count = new AtomicLong(1);
             
-            return res + "\n\n" + responseContent;
-        } else {
-            return memory.get(strongSubject[0]);
-        }
+            memory.forEach((k, chunk) -> {
+                Map.Entry<String, Long> result = useContent(content, false, chunk);
+                if (!result.getKey().equals("Subject not found!") && count.get() < result.getValue()) {
+                    strongSubject[0] = k;
+                    count.set(result.getValue());
+                }
+            });
+            
+            if (strongSubject[0].equals("Subject not found!")) {
+                String res = useContent(content, true, "").getKey();
+                String responseContent = GenerativeAI.generateAnswer(content);
+                memory.put(memory.size() + "", content);
+                
+                System.out.println(res + "\n\n" + responseContent);
+                return res + "\n\n" + responseContent;
+            } else {
+                return memory.get(strongSubject[0]);
+            }
     }
     
     private static List<Map.Entry<String, Integer>> fetchContent(String content) {
@@ -129,14 +131,17 @@ public class Main {
         HashMap<String, Integer> map = new HashMap<>();
         Arrays.stream(content.split(" "))
                 .forEach(s -> {
-                    int len = s.length() - 1;
-                    if (len >= 0 && (s.charAt(len) == 's' || s.charAt(len) == '?' || s.charAt(len) == '!' || s.charAt(len) == ',' || s.charAt(len) == ';' || s.charAt(len) == '.')) {
-                        s = s.substring(0, len);
-                    } else if (s.charAt(len) == 'g' && s.charAt(len-1) == 'n' && s.charAt(len-2) == 'i') {
-                        s = s.substring(0, len-2);
-                    }
+                    
+                    //plurals to singulars
+                    s = s.replaceAll("ies$", "y");
+                    s = s.replaceAll("es$", "");
+                    s = s.replaceAll("s$", "");
+                    
+                    //Marks
+                    s = s.replaceAll("\\p{Punct}", "");
                     map.put(s, map.getOrDefault(s, 0) + 1);
                 });
+
         
         return map.entrySet().stream().sorted(Map.Entry.<String, Integer>comparingByValue()
                         .reversed())
@@ -144,49 +149,55 @@ public class Main {
                 .toList();
     }
     
+    final static ForkJoinPool commonPool = ForkJoinPool.commonPool();
     private static int checkContent(String word, String content, boolean isWeb, String chunk) {
-        int count = 0;
-        try {
-            BufferedReader bf = null;
-            if (isWeb) {
-                URL url = new URL("https://en.wikipedia.org/wiki/" + word);
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                connection.connect();
-                bf = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            } else {
-                bf = new BufferedReader(new StringReader(chunk));
-            }
-            
-            String dummy;
-            while ((dummy = bf.readLine()) != null) {
-                for (String s : content.split(" ")) {
-                    if (dummy.contains(s) && (isWordInDictionary(s) || s.length() >= 4)) count++;
+        AtomicInteger count = new AtomicInteger();
+        commonPool.execute(() -> {
+            try {
+                BufferedReader bf = null;
+                if (isWeb) {
+                    URL url = new URL("https://en.wikipedia.org/wiki/" + word);
+                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                    connection.connect();
+                    bf = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                } else {
+                    bf = new BufferedReader(new StringReader(chunk));
                 }
+                
+                String dummy;
+                while ((dummy = bf.readLine()) != null) {
+                    for (String s : content.split(" ")) {
+                        if (dummy.contains(s) && (isWordInDictionary(s) || s.length() >= 4)) count.getAndIncrement();
+                    }
+                }
+            } catch (IOException e) {
+                // do nothing
             }
-        } catch (IOException e) {
-            // do nothing
-        }
-        return count;
+        });
+        return count.get();
     }
     
+    final static ForkJoinPool commonPool2 = ForkJoinPool.commonPool();
     private static Map.Entry<String, Long> useContent(String content, boolean isWeb, String chunk) {
         List<Map.Entry<String, Integer>> res = fetchContent(content);
         final String[] subject = new String[1];
-        subject[0] = "None";
+        subject[0] = "Subject not found!";
         AtomicLong constant = new AtomicLong();
         long words = isWeb ? Arrays.stream(content.split(" ")).count() * 5 : 1;
         
-        res.forEach(entry -> {
-            int i = checkContent(entry.getKey(), content, isWeb, chunk);
-            if (i >= words) {
-                if (subject[0].equals("None") || i > constant.get()) {
-                    subject[0] = entry.getKey();
-                    constant.set(i);
+        commonPool2.execute(() -> {
+            res.forEach(entry -> {
+                int i = checkContent(entry.getKey(), content, isWeb, chunk);
+                if (i >= words) {
+                    if (subject[0].equals("Subject not found!") || i > constant.get()) {
+                        subject[0] = entry.getKey();
+                        constant.set(i);
+                    }
                 }
-            }
+            });
         });
         
-        if (isWeb && !subject[0].equals("None")) {
+        if (isWeb && !subject[0].equals("Subject not found!")) {
             return new AbstractMap.SimpleEntry<>("Here's what I found on the web: https://en.wikipedia.org/wiki/" + subject[0], 0L);
         }
         
@@ -255,9 +266,9 @@ public class Main {
         }
         
         public static void main(String[] args) {
-            String prompt = "Tell me something interesting about Java";
-            String response = generateAnswer(prompt);
-            System.out.println(response);
+            call("Andrei");
+            call("Emi");
+            call("Olguta");
         }
     }
 }
