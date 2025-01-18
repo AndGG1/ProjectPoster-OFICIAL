@@ -88,4 +88,10 @@ public class Search_Feature {
         }
         return res;
     }
+    
+    public static double similarity(String word1, String word2) {
+        LevenshteinDistance distance = new LevenshteinDistance();
+        
+        return distance.apply(word1, word2);
+    }
 }

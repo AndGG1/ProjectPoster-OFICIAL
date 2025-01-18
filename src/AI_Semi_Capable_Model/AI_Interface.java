@@ -13,6 +13,9 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
+import java.util.Objects;
+import java.util.Random;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -73,6 +76,10 @@ public class AI_Interface {
         
         // Description Text Area
         JTextArea descriptionArea = new JTextArea();
+        descriptionArea.setText("Hi! I am your AI Assistant that will guide you through the app." +
+                "\n\nWe currently support only conversations in english." +
+                "\n\nYou can ask me questions related to the application, like the ones I suggested in the tool bar." +
+                "\n\nI am happy to answer to questions not so related to the topic, or try to seek resources that can help u further, although I might be a bit slow.");
         descriptionArea.setBackground(Color.LIGHT_GRAY);
         descriptionArea.setForeground(Color.BLACK);
         descriptionArea.setFont(new Font("Arial", Font.BOLD, 25));
@@ -105,35 +112,40 @@ public class AI_Interface {
         attach1.revalidate();
         attach1.repaint();
         
-        final boolean[] isDefault = {true};
         ExecutorService executorService = Executors.newFixedThreadPool(5);
         Lock mainLock = new ReentrantLock();
         Lock animationLock = new ReentrantLock();
+        ArrayBlockingQueue<Thread> runnables = new ArrayBlockingQueue<>(10);
+        
         iconLabel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (e.getButton() != 1) return;
-                if (isDefault[0]) return;
                 AtomicReference<AtomicInteger> count = new AtomicReference<>(new AtomicInteger());
                 String s = nameField.getText();
                 try {
                         Runnable myRunnable = () -> {
                             synchronized (mainLock) {
+                                if (Thread.currentThread().isInterrupted()) return;
                                 String content = Main.call(s);
-                                descriptionArea.append("\n" + "-".repeat(100) + "\n" + content);
-                                descriptionArea.append("\n\n" + "Ran on: " + LocalDateTime.now(ZoneId.systemDefault()).format(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL)));
-                                descriptionArea.setForeground(Color.BLACK);
+                                if (Thread.currentThread().isInterrupted()) return;
+                                if (!runnables.contains(Thread.currentThread())) return;
+                                    descriptionArea.append("\n" + "-".repeat(100) + "\n" + content);
+                                    descriptionArea.append("\n\n" + "Ran on: " + LocalDateTime.now(ZoneId.systemDefault()).format(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL)));
+                                    descriptionArea.setForeground(Color.BLACK);
+                                
                             }
                         };
                         Thread mainThread = new Thread(myRunnable);
+                        runnables.offer(mainThread);
                         mainThread.start();
                         
                         Runnable animationRunnable = () -> {
                             synchronized (animationLock) {
                                 descriptionArea.append("\n\n");
-                                while (mainThread.isAlive()) {
+                                while (mainThread.isAlive() && !mainThread.isInterrupted()) {
                                     try {
-                                        if (count.get().get() == 30) {
+                                        if (count.get().get() == 300) {
                                             mainThread.interrupt();
                                             
                                             //Cleaning Data:
@@ -148,7 +160,7 @@ public class AI_Interface {
                                             descriptionArea.setText(descriptionArea.getText().replace(".", ""));
                                         descriptionArea.append(".");
                                     } catch (InterruptedException e2) {
-                                        //ignore
+                                        Thread.currentThread().interrupt();
                                     }
                                 }
                             }
@@ -159,13 +171,9 @@ public class AI_Interface {
                         descriptionArea.setText("Bad user input!");
                         frame.dispose();
                     } finally {
-                        nameField.setText("text...");
-                        isDefault[0] = true;
+                        nameField.setText(RandomQuestionGenerator.getRandomQuestion());
                         nameField.setFocusable(false);
                         nameField.setFocusable(true);
-
-//                        mainLock.unlock();
-//                        animationLock.unlock();
                     }
             }
         });
@@ -192,21 +200,33 @@ public class AI_Interface {
             @Override
             public void focusLost(FocusEvent e) {
                 if (nameField.getText().isEmpty()) {
-                    nameField.setText("text...");
-                    isDefault[0] = true;
+                    nameField.setText(RandomQuestionGenerator.getRandomQuestion());
                 }
             }
             
             @Override
             public void focusGained(FocusEvent e) {
-                if (isDefault[0]) {
                     nameField.setText("");
-                    isDefault[0] = false;
-                }
             }
         });
         
         // Add action listener to clear the descriptionArea when the button is clicked
-        clearButton.addActionListener(e -> descriptionArea.setText(""));
+        clearButton.addActionListener(e -> {
+            descriptionArea.setText("");
+            if (runnables.isEmpty()) return;
+            Objects.requireNonNull(runnables.poll()).interrupt();
+        });
+    }
+    
+    public class RandomQuestionGenerator {
+        public static String getRandomQuestion() {
+            return switch (new Random().nextInt(1, 5)) {
+                case 1 -> "Any new Updates?";
+                case 2 -> "How to avoid bullying / rules applied / avoid racism";
+                case 3 -> "What is an AI Model?";
+                case 4 -> "How to protect my data?";
+                default -> "How to recover account?";
+            };
+        }
     }
 }

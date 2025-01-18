@@ -1,11 +1,15 @@
 package AI_Semi_Capable_Model;
 
+import DTOS.UserInterfaces.Activity.Search_Feature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.swabunga.spell.engine.SpellDictionary;
 import com.swabunga.spell.engine.SpellDictionaryHashMap;
 import com.swabunga.spell.event.SpellChecker;
 import com.swabunga.spell.event.StringWordTokenizer;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.impl.client.CloseableHttpClient;
 
+import javax.print.DocFlavor;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URI;
@@ -16,7 +20,6 @@ import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -68,7 +71,7 @@ public class Main {
             Messaging others creates new connections and maybe establishes new friendships or co-workers!
             """;
     private static final String rules = """
-            Rule / Forbidden / Detail / Detailed / Sets / Not / Allowed / Strengths do / done
+            Rule / Rules / Forbidden / Detail / Detailed / Sets / Not / Allowed / Strengths do / done
             Don't hesitate to report any form of (cyber) bullying or any abusive behaviour!
             
             Don't scam, spam or behave bad with other users!
@@ -101,28 +104,30 @@ public class Main {
     
     public static String call(String content) {
         
-            loadData(memory);
-            String[] strongSubject = new String[1];
-            strongSubject[0] = "Subject not found!";
-            AtomicLong count = new AtomicLong(1);
+        loadData(memory);
+        String[] strongSubject = new String[1];
+        strongSubject[0] = "Subject not found!";
+        AtomicLong count = new AtomicLong(1);
+        
+        memory.forEach((k, chunk) -> {
+            Map.Entry<String, Long> result = useContent(content, false, chunk);
+//                System.out.println("-".repeat(30));
+//                System.out.println(chunk);
+//                System.out.println(result);
+            if (!result.getKey().equals("Subject not found!") && count.get() < result.getValue()) {
+                strongSubject[0] = k;
+                count.set(result.getValue());
+            }
+        });
+        
+        if (strongSubject[0].equals("Subject not found!")) {
+            String res = useContent(content, true, "").getKey();
+            String responseContent = GenerativeAI.generateAnswer(content);
+            memory.put(memory.size() + "", content);
             
-            memory.forEach((k, chunk) -> {
-                Map.Entry<String, Long> result = useContent(content, false, chunk);
-                if (!result.getKey().equals("Subject not found!") && count.get() < result.getValue()) {
-                    strongSubject[0] = k;
-                    count.set(result.getValue());
-                }
-            });
-            
-            if (strongSubject[0].equals("Subject not found!")) {
-                String res = useContent(content, true, "").getKey();
-                String responseContent = GenerativeAI.generateAnswer(content);
-                memory.put(memory.size() + "", content);
-                
-                System.out.println(res + "\n\n" + responseContent);
-                return res + "\n\n" + responseContent;
-            } else {
-                return memory.get(strongSubject[0]);
+            return res + "\n\n" + responseContent;
+        } else {
+                return "From previous conversation: " +  memory.get(strongSubject[0]);
             }
     }
     
@@ -149,10 +154,9 @@ public class Main {
                 .toList();
     }
     
-    final static ForkJoinPool commonPool = ForkJoinPool.commonPool();
+//    final static ForkJoinPool commonPool = ForkJoinPool.commonPool();
     private static int checkContent(String word, String content, boolean isWeb, String chunk) {
         AtomicInteger count = new AtomicInteger();
-        commonPool.execute(() -> {
             try {
                 BufferedReader bf = null;
                 if (isWeb) {
@@ -167,17 +171,18 @@ public class Main {
                 String dummy;
                 while ((dummy = bf.readLine()) != null) {
                     for (String s : content.split(" ")) {
-                        if (dummy.contains(s) && (isWordInDictionary(s) || s.length() >= 4)) count.getAndIncrement();
+                        for (String wordToMatch : dummy.split(" ")) {
+                            if ((dummy.contains(s) || Search_Feature.similarity(s, wordToMatch) >= 50) && (isWordInDictionary(s) || s.length() >= 4)) count.getAndIncrement();
+                        }
                     }
                 }
             } catch (IOException e) {
                 // do nothing
             }
-        });
         return count.get();
     }
     
-    final static ForkJoinPool commonPool2 = ForkJoinPool.commonPool();
+//    final static ForkJoinPool commonPool2 = ForkJoinPool.commonPool();
     private static Map.Entry<String, Long> useContent(String content, boolean isWeb, String chunk) {
         List<Map.Entry<String, Integer>> res = fetchContent(content);
         final String[] subject = new String[1];
@@ -185,7 +190,7 @@ public class Main {
         AtomicLong constant = new AtomicLong();
         long words = isWeb ? Arrays.stream(content.split(" ")).count() * 5 : 1;
         
-        commonPool2.execute(() -> {
+//        commonPool2.execute(() -> {
             res.forEach(entry -> {
                 int i = checkContent(entry.getKey(), content, isWeb, chunk);
                 if (i >= words) {
@@ -194,7 +199,6 @@ public class Main {
                         constant.set(i);
                     }
                 }
-            });
         });
         
         if (isWeb && !subject[0].equals("Subject not found!")) {
@@ -248,7 +252,6 @@ public class Main {
                 ObjectMapper objectMapper = new ObjectMapper();
                 String jsonRequestBody = objectMapper.writeValueAsString(requestBody);
                 
-                System.out.println(OPENAI_API_KEY);
                 HttpRequest request = HttpRequest.newBuilder()
                         .uri(URI.create(OPENAI_ENDPOINT))
                         .header("Content-Type", "application/json")
@@ -259,16 +262,10 @@ public class Main {
                 HttpClient client = HttpClient.newHttpClient();
                 HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
                 
-                return response.body().substring(2, Math.min(response.body().length(), 200));
+                return response.body().substring(2, Math.min(response.body().length(), 250));
             } catch (IOException | InterruptedException e) {
                 return "Couldn't generate answer! - " + e.getMessage();
             }
-        }
-        
-        public static void main(String[] args) {
-            call("Andrei");
-            call("Emi");
-            call("Olguta");
         }
     }
 }
