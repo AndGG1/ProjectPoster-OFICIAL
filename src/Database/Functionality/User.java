@@ -1,12 +1,10 @@
 package Database.Functionality;
 
+import DTOS.UserInterfaces.Activity.Project;
 import jakarta.persistence.Id;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Table;
+import javax.persistence.*;
+import java.util.List;
 import java.util.StringJoiner;
 
 @Entity
@@ -32,6 +30,10 @@ public class User {
     
     @Column(name="user_description")
     private String description;
+    
+    @Column(name="user_projects")
+    @OneToMany
+    private List<Project> projects;
     
     public User() {
     }
@@ -92,6 +94,10 @@ public class User {
     
     public void setDescription(String description) {
         this.description = description;
+    }
+    
+    public List<Project> getProjects() {
+        return projects;
     }
     
     @Override

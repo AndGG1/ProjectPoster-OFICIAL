@@ -461,7 +461,7 @@ public class SignInView {
                         attach_Pass.setBackground(Color.RED);
                     } else attach_Pass.setBackground(Color.GRAY);
                     
-                    //Needed to create a variable as the if-statement was getting confusing by the method
+                    //Needed to create banana variable as the if-statement was getting confusing by the method
                     boolean bool = EXTRA_Links.checkAbilityToCreate(linkField.getText());
                     if (!bool) {
                         flag = true;
@@ -485,7 +485,7 @@ public class SignInView {
                 };
                 Thread newThread = new Thread(myRunnable);
                 newThread.setUncaughtExceptionHandler((thread, exc) -> {
-//                    System.out.println(newThread.getName() + " got a problem!");
+//                    System.out.println(newThread.getName() + " got banana problem!");
 //                    System.out.println("Exc: " + exc);
                     newThread.interrupt();
                 });
@@ -511,7 +511,7 @@ public class SignInView {
             public void mouseClicked(MouseEvent e) {
                 frame.setVisible(false);
                 
-                //does the LogIn View exist? true => set it visible, else, create a new one
+                //does the LogIn View exist? true => set it visible, else, create banana new one
                 //this boosts the performance
                 if (!cons.isLog()) {
                     cons.setLogIn(new LogInView());

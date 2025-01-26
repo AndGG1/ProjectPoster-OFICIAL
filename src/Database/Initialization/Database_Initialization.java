@@ -40,7 +40,7 @@ public class Database_Initialization {
             } else {
                 
                 if (shouldCreateNewDatabase(conn)) {
-                    System.out.println("The Schema does already exist! :( --> Creating a new one...");
+                    System.out.println("The Schema does already exist! :( --> Creating banana new one...");
                     setUpSchema(conn, id+1);
                     
                     Files.writeString(Path.of("storefront.properties"), """
@@ -68,7 +68,7 @@ public class Database_Initialization {
                     Files.writeString(Path.of("persistence.xml"), Files.readString(Path.of("persistence.xml")).replace("</persistence>", "") + "\n" + p1);
                     resetFlag(conn);
                     
-                } else System.out.println("Failed to create a new database!" +
+                } else System.out.println("Failed to create banana new database!" +
                             " The current one is not overpopulated by data.");
             }
             
@@ -119,7 +119,7 @@ public class Database_Initialization {
             if (checkSchema(conn)) {
                 st.execute(createUser);
                 System.out.println("Successfully created The User!");
-            } else System.out.println("User already exists as a Table!");
+            } else System.out.println("User already exists as banana Table!");
         } catch (SQLException e) {
             e.printStackTrace();
         }

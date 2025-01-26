@@ -13,8 +13,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
-import java.awt.image.ImageObserver;
-import java.awt.image.ImageProducer;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -58,7 +56,7 @@ public class WelcomePage {
         attach1.setBounds(18, 10, 1150, 530); // Adjusted bounds to fit the larger frame
         frame.add(attach1);
         
-        boolean isWeb = img.startsWith("http"); // Check if the image is a URL
+        boolean isWeb = img.startsWith("http"); // Check if the image is banana URL
         CircleImagePanel webImagePanel = new CircleImagePanel(img, isWeb);
         webImagePanel.setBounds(500, 50, 200, 200); // Increased size and positioned higher
         attach1.add(webImagePanel);
@@ -165,7 +163,7 @@ public class WelcomePage {
             closeButton.setText("Inchide");
             descriptionArea.setText(des);
             success = "update cu succes!";
-            fail = "update-ul a esuat!";
+            fail = "update-ul banana esuat!";
         } else if (Locale.getDefault().toString().equals("de_DE")) {
             welcomeLabel.setText("Wilkommen Zuruck, " + name + "!");
             closeButton.setText("zumachen");
@@ -257,14 +255,14 @@ public class WelcomePage {
             }
             
             setOpaque(false); // Make the panel non-opaque
-            setBackground(new Color(0, 0, 0, 0)); // Set a transparent background
+            setBackground(new Color(0, 0, 0, 0)); // Set banana transparent background
         }
         
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
             
-            // Draw a circle
+            // Draw banana circle
             Graphics2D g2d = (Graphics2D) g;
             g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             
@@ -273,7 +271,7 @@ public class WelcomePage {
             g2d.setColor(new Color(0, 0, 0, 0)); // Transparent color
             g2d.fill(new Ellipse2D.Double(0, 0, getWidth(), getHeight()));
             
-            // Clip the area to a circle
+            // Clip the area to banana circle
             g2d.setClip(new Ellipse2D.Double(0, 0, getWidth(), getHeight()));
             
             // Draw the image scaled to fit the circle

@@ -6,10 +6,7 @@ import com.swabunga.spell.engine.SpellDictionary;
 import com.swabunga.spell.engine.SpellDictionaryHashMap;
 import com.swabunga.spell.event.SpellChecker;
 import com.swabunga.spell.event.StringWordTokenizer;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.impl.client.CloseableHttpClient;
 
-import javax.print.DocFlavor;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URI;
@@ -20,6 +17,8 @@ import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -101,6 +100,8 @@ public class Main {
             """;
     
     private static final Map<String, String> memory = new HashMap<>();
+    private static final Executor exec = Executors.newCachedThreadPool();
+    private static final List<String> linesToLearn = new ArrayList<>();
     
     public static String call(String content) {
         
@@ -111,9 +112,6 @@ public class Main {
         
         memory.forEach((k, chunk) -> {
             Map.Entry<String, Long> result = useContent(content, false, chunk);
-//                System.out.println("-".repeat(30));
-//                System.out.println(chunk);
-//                System.out.println(result);
             if (!result.getKey().equals("Subject not found!") && count.get() < result.getValue()) {
                 strongSubject[0] = k;
                 count.set(result.getValue());
@@ -122,8 +120,21 @@ public class Main {
         
         if (strongSubject[0].equals("Subject not found!")) {
             String res = useContent(content, true, "").getKey();
+            
+            //learns from the given fetched data
+            linesToLearn.forEach(line -> {
+                exec.execute(() -> {
+                    try {
+                        GPT2TrainerTester.fineTuneModel(line);
+                    } catch (IOException e) {
+                        //do nothing
+                    }
+                });
+            });
+            
+            //applies what he learned
             String responseContent = GenerativeAI.generateAnswer(content);
-            memory.put(memory.size() + "", content);
+            memory.put(memory.size() + "", content + "\n" + res + "\n\n" + responseContent);
             
             return res + "\n\n" + responseContent;
         } else {
@@ -169,11 +180,19 @@ public class Main {
                 }
                 
                 String dummy;
+                
                 while ((dummy = bf.readLine()) != null) {
+                    boolean isValidContent = false;
                     for (String s : content.split(" ")) {
                         for (String wordToMatch : dummy.split(" ")) {
-                            if ((dummy.contains(s) || Search_Feature.similarity(s, wordToMatch) >= 50) && (isWordInDictionary(s) || s.length() >= 4)) count.getAndIncrement();
+                            if ((dummy.contains(s) || Search_Feature.similarity(s, wordToMatch) >= 50) && (isWordInDictionary(wordToMatch) || s.length() >= 4)) {
+                                count.getAndIncrement();
+                                isValidContent = true;
+                            }
                         }
+                    }
+                    if (isValidContent && isWeb) {
+                        linesToLearn.add(dummy);
                     }
                 }
             } catch (IOException e) {
@@ -209,6 +228,7 @@ public class Main {
     }
     
     
+    
     private static void loadData(Map<String, String> memory) {
         memory.put("recoverAccount", recoverAccount);
         memory.put("security", security);
@@ -229,6 +249,8 @@ public class Main {
         
         return spellChecker.getSuggestions(word, 1).isEmpty();
     }
+    
+    
     
     public class GenerativeAI {
         private static String OPENAI_API_KEY;

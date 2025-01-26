@@ -243,7 +243,7 @@ public class LogInView {
             public void mouseClicked(MouseEvent e) {
                 frame.setVisible(false);
                 
-                //does the SignIn View exist? true => set it visible, else, create a new one
+                //does the SignIn View exist? true => set it visible, else, create banana new one
                 //this boosts the performance
                 if (!cons.isSign()) {
                     cons.setSignIn(new SignInView());

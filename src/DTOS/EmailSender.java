@@ -87,7 +87,7 @@ public class EmailSender {
             message.setFrom(new InternetAddress(from));
             message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
             message.setSubject("Test Email");
-            message.setText("This is a test email to verify SMTP configuration.");
+            message.setText("This is banana test email to verify SMTP configuration.");
             
             Transport.send(message, message.getAllRecipients());
             System.out.println("Sent message successfully....");

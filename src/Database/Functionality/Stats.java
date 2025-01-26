@@ -1,22 +1,26 @@
 package Database.Functionality;
 
 import Database.Functionality.Startup.Startup_Sign;
+import Database.Initialization.Database_Initialization;
 import com.mysql.cj.jdbc.MysqlDataSource;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Persistence;
 import jakarta.persistence.TypedQuery;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.nio.file.*;
 import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.Properties;
 import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class Stats {
     //TODO: Upgrade (more features)
+    private static Scanner scanner = null;
     public static void main(String[] args) throws SQLException, IOException, InterruptedException {
-        Scanner scanner = new Scanner(System.in);
+        scanner = new Scanner(System.in);
         
         while (scanner.hasNextLine()) {
             String line = scanner.nextLine();
@@ -28,7 +32,13 @@ public class Stats {
                 if (line.split(": ")[1].split(" - ")[0].equals(props.getProperty("pass")) && line.split(": ")[1].contains(" - ")) {
                     deleteAll(1, Boolean.parseBoolean(line.split(" - ")[1]));
                 }
-            }
+            } else if (line.equals("MAINTAIN") || line.contains("MANAGE") || line.contains("KEEP TRACK")) {
+                keepTrack();
+            } else if (line.contains("MAINTAIN USERS")) {
+                keepTrackOfUsersJoining();
+            } else if (line.contains("MONITOR DATABASE")) {
+                Database_Initialization.main(new String[] {});
+            } else if (line.contains("CLOSE")) break;
         }
     }
     
@@ -119,7 +129,6 @@ public class Stats {
                 TypedQuery<User> query = em.createQuery("DELETE FROM storefront" + index + ".user", User.class);
                 query.executeUpdate();
                 transaction.commit();
-            transaction.commit();
         } finally {
             System.out.println("Deletion worked successfully");
             if (showAll) showStats(1);
@@ -128,5 +137,47 @@ public class Stats {
     
     private static String getIndex(String username) {
         return props2.getProperty(Startup_Sign.serializeObject(username));
+    }
+    
+    private static void keepTrack() throws IOException, InterruptedException {
+        System.out.println("Started keeping track!");
+        System.out.println("-".repeat(30));
+        var watcherService = FileSystems.getDefault().newWatchService();
+        WatchKey watchKey = Paths.get(".").register(watcherService,
+                StandardWatchEventKinds.ENTRY_CREATE,
+                StandardWatchEventKinds.ENTRY_MODIFY,
+                StandardWatchEventKinds.ENTRY_DELETE);
+        
+        while (true) {
+            watchKey = watcherService.take();
+            
+            watchKey.pollEvents().forEach(event -> {
+                if (event.kind() != StandardWatchEventKinds.OVERFLOW) {
+                    System.out.println("EVENT KIND: " + event.kind());
+                    System.out.println("EVENT CONTEXT: " + event.context());
+                    System.out.println("EVENT OBJ: " + event);
+                    System.out.println("HAPPENED AT: " + LocalDateTime.now() + "\n");
+                }
+            });
+            System.out.println();
+            watchKey.reset();
+        }
+    }
+    
+    private static void keepTrackOfUsersJoining() throws InterruptedException, IOException {
+        String old = "";
+        System.out.println("Started keeping track of users!");
+        System.out.println("-".repeat(30));
+        while (true) {
+            TimeUnit.SECONDS.sleep(1);
+            
+            String curr = Files.lines(Path.of("users.properties")).collect(Collectors.joining());
+            if (!curr.equals(old)) {
+                System.out.println("Modification happened in users.properties!");
+                System.out.println("New users/s:");
+                System.out.println(curr.substring(old.length()));
+                old = curr;
+            }
+        }
     }
 }

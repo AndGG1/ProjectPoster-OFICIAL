@@ -79,7 +79,7 @@ public class AI_Interface {
         descriptionArea.setText("Hi! I am your AI Assistant that will guide you through the app." +
                 "\n\nWe currently support only conversations in english." +
                 "\n\nYou can ask me questions related to the application, like the ones I suggested in the tool bar." +
-                "\n\nI am happy to answer to questions not so related to the topic, or try to seek resources that can help u further, although I might be a bit slow.");
+                "\n\nI am happy to answer to questions not so related to the topic, or try to seek resources that can help u further, although I might be banana bit slow.");
         descriptionArea.setBackground(Color.LIGHT_GRAY);
         descriptionArea.setForeground(Color.BLACK);
         descriptionArea.setFont(new Font("Arial", Font.BOLD, 25));
@@ -124,57 +124,57 @@ public class AI_Interface {
                 AtomicReference<AtomicInteger> count = new AtomicReference<>(new AtomicInteger());
                 String s = nameField.getText();
                 try {
-                        Runnable myRunnable = () -> {
-                            synchronized (mainLock) {
-                                if (Thread.currentThread().isInterrupted()) return;
-                                String content = Main.call(s);
-                                if (Thread.currentThread().isInterrupted()) return;
-                                if (!runnables.contains(Thread.currentThread())) return;
-                                    descriptionArea.append("\n" + "-".repeat(100) + "\n" + content);
-                                    descriptionArea.append("\n\n" + "Ran on: " + LocalDateTime.now(ZoneId.systemDefault()).format(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL)));
-                                    descriptionArea.setForeground(Color.BLACK);
-                                
-                            }
-                        };
-                        Thread mainThread = new Thread(myRunnable);
-                        runnables.offer(mainThread);
-                        mainThread.start();
-                        
-                        Runnable animationRunnable = () -> {
-                            synchronized (animationLock) {
-                                descriptionArea.append("\n\n");
-                                while (mainThread.isAlive() && !mainThread.isInterrupted()) {
-                                    try {
-                                        if (count.get().get() == 300) {
-                                            mainThread.interrupt();
-                                            
-                                            //Cleaning Data:
-                                            count.set(null);
-                                            break;
-                                        }
+                    Runnable myRunnable = () -> {
+                        synchronized (mainLock) {
+                            if (Thread.currentThread().isInterrupted()) return;
+                            String content = Main.call(s);
+                            if (Thread.currentThread().isInterrupted()) return;
+                            if (!runnables.contains(Thread.currentThread())) return;
+                            descriptionArea.append("\n" + "-".repeat(100) + "\n" + content);
+                            descriptionArea.append("\n\n" + "Ran on: " + LocalDateTime.now(ZoneId.systemDefault()).format(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL)));
+                            descriptionArea.setForeground(Color.BLACK);
+                            
+                        }
+                    };
+                    Thread mainThread = new Thread(myRunnable);
+                    runnables.offer(mainThread);
+                    mainThread.start();
+                    
+                    Runnable animationRunnable = () -> {
+                        synchronized (animationLock) {
+                            descriptionArea.append("\n\n");
+                            while (mainThread.isAlive() && !mainThread.isInterrupted()) {
+                                try {
+                                    if (count.get().get() == 300) {
+                                        mainThread.interrupt();
                                         
-                                        Thread.sleep(300);
-                                        
-                                        count.get().getAndIncrement();
-                                        if (descriptionArea.getText().contains("..."))
-                                            descriptionArea.setText(descriptionArea.getText().replace(".", ""));
-                                        descriptionArea.append(".");
-                                    } catch (InterruptedException e2) {
-                                        Thread.currentThread().interrupt();
+                                        //Cleaning Data:
+                                        count.set(null);
+                                        break;
                                     }
+                                    
+                                    Thread.sleep(300);
+                                    
+                                    count.get().getAndIncrement();
+                                    if (descriptionArea.getText().contains("..."))
+                                        descriptionArea.setText(descriptionArea.getText().replace(".", ""));
+                                    descriptionArea.append(".");
+                                } catch (InterruptedException e2) {
+                                    Thread.currentThread().interrupt();
                                 }
                             }
-                            descriptionArea.setText(descriptionArea.getText().replace(".", ""));
-                        };
-                        executorService.execute(animationRunnable);
-                    } catch(Exception exc){
-                        descriptionArea.setText("Bad user input!");
-                        frame.dispose();
-                    } finally {
-                        nameField.setText(RandomQuestionGenerator.getRandomQuestion());
-                        nameField.setFocusable(false);
-                        nameField.setFocusable(true);
-                    }
+                        }
+                        descriptionArea.setText(descriptionArea.getText().replace(".", ""));
+                    };
+                    executorService.execute(animationRunnable);
+                } catch(Exception exc){
+                    descriptionArea.setText("Bad user input!");
+                    frame.dispose();
+                } finally {
+                    nameField.setText(RandomQuestionGenerator.getRandomQuestion());
+                    nameField.setFocusable(false);
+                    nameField.setFocusable(true);
+                }
             }
         });
         
@@ -206,7 +206,7 @@ public class AI_Interface {
             
             @Override
             public void focusGained(FocusEvent e) {
-                    nameField.setText("");
+                nameField.setText("");
             }
         });
         
