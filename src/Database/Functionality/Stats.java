@@ -9,8 +9,10 @@ import jakarta.persistence.TypedQuery;
 
 import java.io.IOException;
 import java.nio.file.*;
+import java.nio.file.attribute.FileTime;
 import java.sql.*;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Properties;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
@@ -35,7 +37,7 @@ public class Stats {
             } else if (line.equals("MAINTAIN") || line.contains("MANAGE") || line.contains("KEEP TRACK")) {
                 keepTrack();
             } else if (line.contains("MAINTAIN USERS")) {
-                keepTrackOfUsersJoining();
+                    keepTrackOfUsersJoining(Path.of("users.properties"));
             } else if (line.contains("MONITOR DATABASE")) {
                 Database_Initialization.main(new String[] {});
             } else if (line.contains("CLOSE")) break;
@@ -164,19 +166,25 @@ public class Stats {
         }
     }
     
-    private static void keepTrackOfUsersJoining() throws InterruptedException, IOException {
-        String old = "";
+    public static void keepTrackOfUsersJoining(Path users) throws InterruptedException, IOException {
         System.out.println("Started keeping track of users!");
         System.out.println("-".repeat(30));
+        
+        FileTime oldTime = Files.getLastModifiedTime(users);
+        
         while (true) {
             TimeUnit.SECONDS.sleep(1);
             
-            String curr = Files.lines(Path.of("users.properties")).collect(Collectors.joining());
-            if (!curr.equals(old)) {
+            FileTime currentFileTime = Files.getLastModifiedTime(users);
+            if (!currentFileTime.equals(oldTime)) {
+                List<String> lines = Files.readAllLines(users);
+                String curr = String.join("\r", lines);
+                
                 System.out.println("Modification happened in users.properties!");
-                System.out.println("New users/s:");
-                System.out.println(curr.substring(old.length()));
-                old = curr;
+                System.out.println("New user/s:");
+                System.out.println(curr);
+                
+                oldTime = currentFileTime;
             }
         }
     }

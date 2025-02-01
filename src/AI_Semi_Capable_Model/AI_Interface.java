@@ -5,14 +5,15 @@ import DTOS.EXTRA_Links;
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
 import java.awt.*;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
+import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -25,6 +26,15 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class AI_Interface {
     private final JFrame frame;
+    private final static List<String> apis;
+    
+    static {
+        try {
+            apis = Files.readAllLines(Path.of("API_KEYS"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
     
     public static void main(String[] args) {
         new AI_Interface();
@@ -215,6 +225,22 @@ public class AI_Interface {
             descriptionArea.setText("");
             if (runnables.isEmpty()) return;
             Objects.requireNonNull(runnables.poll()).interrupt();
+        });
+        
+        frame.addWindowFocusListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                if (apis == null) return;
+                
+                for (String api : apis) {
+                    try {
+                        if (!GPT2TrainerTester.chooseFreeAi(api)) return;
+                    } catch (IOException ex) {
+                        //do nothing
+                    }
+                }
+                GPT2TrainerTester.learnTheAi(Main.getLinesToLearn(), Main.getExec());
+            }
         });
     }
     

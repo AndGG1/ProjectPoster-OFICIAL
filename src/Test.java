@@ -1,8 +1,10 @@
 import DTOS.EXTRA_Links;
 import DTOS.UserInterfaces.Register.SignInView;
+import Database.Functionality.Stats;
 
 import java.awt.*;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.sql.SQLException;
 
 public class Test {

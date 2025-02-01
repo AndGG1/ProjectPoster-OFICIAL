@@ -11,8 +11,9 @@ import org.apache.http.util.EntityUtils;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.List;
+import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
-
 
 
 public class GPT2TrainerTester {
@@ -87,12 +88,16 @@ public class GPT2TrainerTester {
         BufferedReader bf = null;
         URL url = new URL("https://en.wikipedia.org/wiki/" + word);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        
+        if (connection.getResponseCode() != 200) return "Failed!";
+        
         connection.connect();
         bf = new BufferedReader(new InputStreamReader(connection.getInputStream()));
         
         return bf.lines().collect(Collectors.joining());
     }
     
+    //not learned
     private static void interactWithModel(String inputText) throws IOException {
         CloseableHttpClient httpClient = HttpClients.createDefault();
         HttpPost httpPost = new HttpPost(API_URL);
@@ -130,5 +135,30 @@ public class GPT2TrainerTester {
         
         response.close();
         httpClient.close();
+    }
+    
+    public static void learnTheAi(List<String> linesToLearn, Executor exec) {
+        //learns from the given fetched data
+        linesToLearn.forEach(line -> {
+            exec.execute(() -> {
+                try {
+                    GPT2TrainerTester.fineTuneModel(line);
+                } catch (IOException e) {
+                    //do nothing
+                }
+            });
+        });
+    }
+    
+    public static boolean chooseFreeAi(String apiKey) throws IOException {
+        URL url = new URL("https://api-inference.huggingface.co/models/openai-community/gpt2");
+        
+        HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
+        httpURLConnection.setRequestMethod("GET");
+        httpURLConnection.setRequestProperty("Authorization", "Bearer " + apiKey);
+        
+        int respCode = httpURLConnection.getResponseCode();
+        if (respCode == 200) return true;
+        return false;
     }
 }

@@ -14,7 +14,8 @@ public class EmailSender {
     private static JLabel statusLabel;
     
     public static void main(String[] args) throws MessagingException {
-        sendEmail("andrei.greblaru@gmail.com");
+//        sendEmail("andrei.greblaru@gmail.com");
+        new EmailSender();
     }
     
     public EmailSender() {

@@ -3,7 +3,6 @@ package AI_Semi_Capable_Model;
 import DTOS.UserInterfaces.Activity.Search_Feature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.swabunga.spell.engine.SpellDictionary;
-import com.swabunga.spell.engine.SpellDictionaryHashMap;
 import com.swabunga.spell.event.SpellChecker;
 import com.swabunga.spell.event.StringWordTokenizer;
 
@@ -27,12 +26,8 @@ public class Main {
     private static String result;
     
     static {
-        try {
-            dictionary = new SpellDictionaryHashMap(new File("Dictionary.txt"));
-            result = "";
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        //dictionary = new SpellDictionaryHashMap(new File("Dictionary.txt"));
+        result = "";
     }
     
     public static void main(String[] args) {
@@ -100,8 +95,8 @@ public class Main {
             """;
     
     private static final Map<String, String> memory = new HashMap<>();
-    private static final Executor exec = Executors.newCachedThreadPool();
-    private static final List<String> linesToLearn = new ArrayList<>();
+    private static Executor exec = Executors.newCachedThreadPool();
+    private static List<String> linesToLearn = new ArrayList<>();
     
     public static String call(String content) {
         
@@ -120,17 +115,6 @@ public class Main {
         
         if (strongSubject[0].equals("Subject not found!")) {
             String res = useContent(content, true, "").getKey();
-            
-            //learns from the given fetched data
-            linesToLearn.forEach(line -> {
-                exec.execute(() -> {
-                    try {
-                        GPT2TrainerTester.fineTuneModel(line);
-                    } catch (IOException e) {
-                        //do nothing
-                    }
-                });
-            });
             
             //applies what he learned
             String responseContent = GenerativeAI.generateAnswer(content);
@@ -185,7 +169,7 @@ public class Main {
                     boolean isValidContent = false;
                     for (String s : content.split(" ")) {
                         for (String wordToMatch : dummy.split(" ")) {
-                            if ((dummy.contains(s) || Search_Feature.similarity(s, wordToMatch) >= 50) && (isWordInDictionary(wordToMatch) || s.length() >= 4)) {
+                            if ((dummy.contains(s) || Search_Feature.similarity(s, wordToMatch) >= 50) && s.length() >= 4) {
                                 count.getAndIncrement();
                                 isValidContent = true;
                             }
@@ -255,12 +239,14 @@ public class Main {
     public class GenerativeAI {
         private static String OPENAI_API_KEY;
         private static final String OPENAI_ENDPOINT = "https://api-inference.huggingface.co/models/openai-community/gpt2";
+        private static final List<String> apis;
         
         static {
             Properties props = new Properties();
             try {
                 props.load(Files.newInputStream(Path.of("storefront.properties")));
                 OPENAI_API_KEY = props.getProperty("KEY");
+                apis = Files.readAllLines(Path.of("API_KEYS"));
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -268,6 +254,18 @@ public class Main {
         
         private static String generateAnswer(String prompt) {
             try {
+                boolean canGenerateAnswer = false;
+                for (String api : apis) {
+                    if (GPT2TrainerTester.chooseFreeAi(api)) {
+                        canGenerateAnswer = true;
+                        OPENAI_API_KEY = api;
+                        break;
+                    }
+                }
+                
+                if (!canGenerateAnswer) return "I am sorry, but all our Discussion Servers are currently unavailable, " +
+                        "I suggest asking me again in about 30 seconds or so, a server might get free.";
+                
                 Map<String, Object> requestBody = new HashMap<>();
                 requestBody.put("inputs", prompt);
                 
@@ -289,5 +287,14 @@ public class Main {
                 return "Couldn't generate answer! - " + e.getMessage();
             }
         }
+    }
+    
+    //Aren't immutable / defensive programming not applied
+    public static Executor getExec() {
+        return exec;
+    }
+    
+    public static List<String> getLinesToLearn() {
+        return linesToLearn;
     }
 }
