@@ -59,7 +59,7 @@ public class GPT2TrainerTester {
         }
     }
     
-    public static void fineTuneModel(String trainingData) throws IOException {
+    public static void fineTuneModel(String trainingData, String API_KEY) throws IOException {
         CloseableHttpClient httpClient = HttpClients.createDefault();
         HttpPost httpPost = new HttpPost(API_URL);
         httpPost.setHeader("Authorization", "Bearer " + API_KEY);
@@ -137,12 +137,12 @@ public class GPT2TrainerTester {
         httpClient.close();
     }
     
-    public static void learnTheAi(List<String> linesToLearn, Executor exec) {
+    public static void learnTheAi(List<String> linesToLearn, Executor exec, String api) {
         //learns from the given fetched data
         linesToLearn.forEach(line -> {
             exec.execute(() -> {
                 try {
-                    GPT2TrainerTester.fineTuneModel(line);
+                    GPT2TrainerTester.fineTuneModel(line, api);
                 } catch (IOException e) {
                     //do nothing
                 }

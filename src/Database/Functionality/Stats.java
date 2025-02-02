@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 public class Stats {
     //TODO: Upgrade (more features)

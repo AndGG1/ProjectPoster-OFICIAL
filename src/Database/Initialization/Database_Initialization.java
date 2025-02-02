@@ -15,7 +15,7 @@ import java.util.Properties;
 public class Database_Initialization {
     //TODO - keep track of Initialization_DB
     private static String USE_SCHEMA = "USE storefront1";
-    private static int MYSQL_DB_NOT_FOUND = 1049;
+    private final static int MYSQL_DB_NOT_FOUND = 1049;
 
     
     
@@ -42,6 +42,7 @@ public class Database_Initialization {
                 if (shouldCreateNewDatabase(conn)) {
                     System.out.println("The Schema does already exist! :( --> Creating banana new one...");
                     setUpSchema(conn, id+1);
+                    USE_SCHEMA = "USE storefront"+(id+1);
                     
                     Files.writeString(Path.of("storefront.properties"), """
                             user = And_GG
@@ -68,7 +69,7 @@ public class Database_Initialization {
                     Files.writeString(Path.of("persistence.xml"), Files.readString(Path.of("persistence.xml")).replace("</persistence>", "") + "\n" + p1);
                     resetFlag(conn);
                     
-                } else System.out.println("Failed to create banana new database!" +
+                } else System.out.println("Failed to create new database!" +
                             " The current one is not overpopulated by data.");
             }
             

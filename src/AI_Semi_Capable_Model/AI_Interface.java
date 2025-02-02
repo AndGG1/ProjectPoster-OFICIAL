@@ -239,7 +239,10 @@ public class AI_Interface {
                         //do nothing
                     }
                 }
-                GPT2TrainerTester.learnTheAi(Main.getLinesToLearn(), Main.getExec());
+                
+                for (String api : apis) {
+                    GPT2TrainerTester.learnTheAi(Main.getLinesToLearn(), Main.getExec(), api);
+                }
             }
         });
     }
