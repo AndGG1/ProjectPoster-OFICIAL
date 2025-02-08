@@ -2,6 +2,7 @@ package DTOS.UserInterfaces.Register;
 
 import AI_Semi_Capable_Model.AI_Interface;
 import DTOS.EmailSender;
+import DTOS.UserInterfaces.Activity.Activity_Interfaces.SearchForProjectsInterface;
 import com.mysql.cj.jdbc.MysqlDataSource;
 
 import javax.imageio.ImageIO;
@@ -119,6 +120,7 @@ public class WelcomePage {
             public void mouseClicked(MouseEvent e) {
                 if (e.getButton() == 1) {
                     frame.dispose();
+                    new SearchForProjectsInterface(img);
                 }
             }
         });

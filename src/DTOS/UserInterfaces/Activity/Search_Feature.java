@@ -91,7 +91,9 @@ public class Search_Feature {
     
     public static double similarity(String word1, String word2) {
         LevenshteinDistance distance = new LevenshteinDistance();
-        
-        return distance.apply(word1, word2);
+        int editDistance = distance.apply(word1, word2);
+        int maxLength = Math.max(word1.length(), word2.length());
+        return (1 - (double) editDistance / maxLength) * 100;
     }
+    
 }
