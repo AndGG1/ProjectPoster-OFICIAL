@@ -26,6 +26,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 public class SearchForProjectsInterface {
     private final JFrame frame;
@@ -125,30 +127,35 @@ public class SearchForProjectsInterface {
             } else if (Locale.getDefault().equals(new Locale("de", "DE"))) {
                 searchLabel.setText("Suchen:");
             }
+        
+        frame.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                Dimension newSize = frame.getSize();
                 
-                // Resize Logic
-                frame.addComponentListener(new ComponentAdapter() {
-                    @Override
-                    public void componentResized(ComponentEvent e) {
-                        Dimension newSize = frame.getSize();
-                        
-                        // Adjust search label size and position
-                        searchLabel.setBounds(20, 10, newSize.width / 10, 30);
-                        
-                        // Adjust search text field size and position
-                        searchTextField.setBounds(130, 10, newSize.width / 2, 30);
-                        
-                        // Adjust search button size and position
-                        searchButton.setBounds(searchTextField.getX() + searchTextField.getWidth() + 10, 10, newSize.width / 50, 30);
-                        
-                        // Adjust attach1 size and position
-                        attach1.setBounds(18, 50, newSize.width - 51, newSize.height - 100);
-                        
-                        scrollPane.setBounds(0, 0, newSize.width - 51, newSize.height - 100);
-                        
-                        //frame.repaint();
-                    }
-                });
+                // Adjust search label size and position
+                searchLabel.setBounds(20, 10, newSize.width / 10, 30);
+                
+                // Adjust search text field size and position
+                searchTextField.setBounds(130, 10, newSize.width / 2, 30);
+                
+                // Adjust search button size and position
+                searchButton.setBounds(searchTextField.getX() + searchTextField.getWidth() + 10, 10, newSize.width / 50, 30);
+                
+                // Adjust attach1 size and position
+                attach1.setBounds(18, 50, newSize.width - 51, newSize.height - 100);
+                
+                scrollPane.setBounds(0, 0, newSize.width - 51, newSize.height - 100);
+                
+                // Adjust profile image size and position relative to the frame width
+                webImagePanel.setBounds(newSize.width - 140, 5, 40, 40);
+                
+                // Adjust create project button size and position relative to the frame width
+                createProjectButton.setBounds(newSize.width - 200, 5, 50, 40);
+            }
+        });
+        
+        
         
         searchButton.addMouseListener(new MouseAdapter() {
             @Override
@@ -186,59 +193,69 @@ public class SearchForProjectsInterface {
         });
     }
     
-    private void getProjects(char startingLetter, String wholeWord, JTextArea searchTextField) {
+    private final Executor cachedThreadPool;
+    List<List<Object>> projects = new ArrayList<>();
+    {
+        cachedThreadPool = Executors.newCachedThreadPool();
         
-        var ds = new MysqlDataSource();
+    }
+    
+    private void getProjects(char startingLetter, String wholeWord, JTextArea searchTextField) {
+        String query = "SELECT project_id, project_name, project_link, project_description FROM projects.section" + startingLetter;
+        MysqlDataSource ds = new MysqlDataSource();
         ds.setServerName("localhost");
         ds.setPortNumber(3306);
         ds.setUser(props.getProperty("user"));
         ds.setPassword(props.getProperty("pass"));
         
-        List<List<Object>> projects = new ArrayList<>();
-        String query = "SELECT project_id, project_name, project_link, project_description FROM projects.section" + startingLetter;
-        
-        try (Connection conn = ds.getConnection();
-                Statement st = conn.createStatement()) {
-            ResultSet resultSet = st.executeQuery(query);
-            
-            while (resultSet.next()) {
-                List<Object> row = new ArrayList<>();
+        cachedThreadPool.execute(() -> {
+            try (Connection conn = ds.getConnection();
+                 Statement st = conn.createStatement()) {
+                ResultSet resultSet = st.executeQuery(query);
                 
-                row.add(resultSet.getInt("project_id"));
-                row.add(resultSet.getString("project_name"));
-                row.add(resultSet.getString("project_link"));
-                row.add(resultSet.getString("project_description"));
-                
-                double percentage = Search_Feature.similarity(wholeWord, row.get(1)+"");
-                
-                if (percentage >= 33) {
-                    row.add(percentage);
-                    projects.add(row);
+                while (resultSet.next()) {
+                    List<Object> row = new ArrayList<>();
+                    
+                    row.add(resultSet.getInt("project_id"));
+                    row.add(resultSet.getString("project_name"));
+                    row.add(resultSet.getString("project_link"));
+                    row.add(resultSet.getString("project_description"));
+                    
+                    double percentage = Search_Feature.similarity(wholeWord, row.get(1) + "");
+                    
+                    if (percentage >= 33) {
+                        row.add(percentage);
+                        projects.add(row);
+                    }
+                    System.out.println(percentage);
                 }
-            }
-            
-            searchTextField.setText("");
-            if (projects.isEmpty()) {
-                searchTextField.setText("No results returned from the search!");
-                return;
-            }
-            
-            Collections.sort(projects, new Comparator<List<Object>>() {
-                @Override
-                public int compare(List<Object> o1, List<Object> o2) {
-                    return Double.compare((double) o1.get(o1.size()-1), (double) o2.get(o2.size()-1));
+                
+                searchTextField.setText("");
+                if (projects.isEmpty()) {
+                    searchTextField.setText("No results returned from the search!");
+                    return;
                 }
-            });
-            Collections.reverse(projects);
-            
-            for (var row : projects) {
-                row.remove(0);
-                row.remove(row.size()-1);
-                searchTextField.append("Project: " + row + "\n");
+                
+                Collections.sort(projects, new Comparator<List<Object>>() {
+                    @Override
+                    public int compare(List<Object> o1, List<Object> o2) {
+                        return Double.compare((double) o1.get(o1.size() - 1), (double) o2.get(o2.size() - 1));
+                    }
+                });
+                Collections.reverse(projects);
+                
+                for (var row : projects) {
+                    row.remove(0);
+                    row.remove(row.size() - 1);
+                    searchTextField.append("Project: " + row + "\n");
+                }
+                
+                projects.clear();
+            } catch (SQLException e) {
+                
+                e.printStackTrace();
             }
-        } catch (SQLException e) {
-            //ignore
-        }
+        });
     }
 }
 

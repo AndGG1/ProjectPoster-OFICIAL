@@ -58,6 +58,7 @@ public class ProjectDatabase_Initialization {
                         "project_name TEXT NOT NULL, " +
                         "project_link TEXT NOT NULL, " +
                         "project_description TEXT NOT NULL, " +
+                        "project_owner TEXT NOT NULL, " +
                         "PRIMARY KEY (project_id)" +
                         ")";
                 try (Statement stmt = connection.createStatement()) {
