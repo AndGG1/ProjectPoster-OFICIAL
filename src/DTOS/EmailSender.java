@@ -64,17 +64,15 @@ public class EmailSender {
     }
     
     private static void sendEmail(String to) throws MessagingException {
-        String password = "ER86Yt42"; // Use app-specific password if 2FA is enabled
+        String password = "5372 7448"; // Use app-specific password if 2FA is enabled
         String host = "smtp.gmail.com";
-        String from = "andrei.greblaru@gmail.com";
+        String from = "andrei.greblaru@hmail.com";
         
         Properties properties = new Properties();
         properties.put("mail.smtp.host", host);
         properties.put("mail.smtp.port", "587"); // Using TLS
-        properties.put("mail.smtp.auth", true);
-        properties.put("mail.smtp.user", "username");
-        properties.put("mail.smtp.password", "password");
-        properties.put("mail.smtp.starttls.enable", true); // Enable TLS
+        properties.put("mail.smtp.auth", "true");
+        properties.put("mail.smtp.starttls.enable", "true"); // Enable TLS
         
         Session session = Session.getInstance(properties, new javax.mail.Authenticator() {
             protected PasswordAuthentication getPasswordAuthentication() {
@@ -82,15 +80,14 @@ public class EmailSender {
             }
         });
         
-        
         try {
             MimeMessage message = new MimeMessage(session);
             message.setFrom(new InternetAddress(from));
             message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
             message.setSubject("Test Email");
-            message.setText("This is banana test email to verify SMTP configuration.");
+            message.setText("This is a test email to verify SMTP configuration.");
             
-            Transport.send(message, message.getAllRecipients());
+            Transport.send(message);
             System.out.println("Sent message successfully....");
         } catch (AuthenticationFailedException e) {
             System.err.println("Authentication failed: " + e.getMessage());

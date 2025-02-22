@@ -2,6 +2,7 @@ package DTOS.UserInterfaces.Activity.Activity_Interfaces;
 
 import DTOS.UserInterfaces.Activity.Search_Feature;
 import com.mysql.cj.jdbc.MysqlDataSource;
+import org.apache.commons.collections.list.SynchronizedList;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -20,10 +21,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.Executor;
@@ -46,8 +44,11 @@ public class SearchForProjectsInterface {
         frame.setSize(dimension.width, dimension.height);
         frame.setResizable(true);
         frame.setLocationRelativeTo(null);
-        frame.setLayout(null);
         frame.getContentPane().setBackground(Color.GRAY);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setLayout(null);
+        frame.setVisible(true);
+        
         
         try {
             props.load(Files.newInputStream(Path.of("storefront.properties"), StandardOpenOption.READ));
@@ -127,43 +128,49 @@ public class SearchForProjectsInterface {
         removeProjectButton.setFocusPainted(false);
         frame.add(removeProjectButton);
         
+        Runnable compResize = () -> {
+            Dimension newSize = frame.getSize();
+            
+            // Adjust search label size and position
+            searchLabel.setBounds(20, 10, newSize.width / 10, 30);
+            
+            // Adjust search text field size and position
+            searchTextField.setBounds(130, 10, newSize.width / 2, 30);
+            
+            // Adjust search button size and position
+            searchButton.setBounds(searchTextField.getX() + searchTextField.getWidth() + 10, 10, newSize.width / 50, 30);
+            
+            // Adjust attach1 size and position
+            attach1.setBounds(18, 50, newSize.width - 51, newSize.height - 100);
+            
+            scrollPane.setBounds(0, 0, newSize.width - 51, newSize.height - 100);
+            
+            // Adjust profile image size and position relative to the frame width
+            webImagePanel.setBounds(newSize.width - 140, 5, 40, 40);
+            
+            // Adjust create project button size and position relative to the frame width
+            createProjectButton.setBounds(newSize.width - 300, 5, 50, 40);
+            
+            // Adjust remove project button size and position relative to the frame width
+            removeProjectButton.setBounds(newSize.width - 370, 5, 50, 40);
+        };
+        
+        frame.repaint();
+        compResize.run();
+        descriptionArea.setText("Start searching for projects!");
         
         if (Locale.getDefault().equals(new Locale("ro", "RO"))) {
                 searchLabel.setText("Cautare:");
             } else if (Locale.getDefault().equals(new Locale("de", "DE"))) {
                 searchLabel.setText("Suchen:");
-            }
+        }
         
         frame.addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
-                Dimension newSize = frame.getSize();
-                
-                // Adjust search label size and position
-                searchLabel.setBounds(20, 10, newSize.width / 10, 30);
-                
-                // Adjust search text field size and position
-                searchTextField.setBounds(130, 10, newSize.width / 2, 30);
-                
-                // Adjust search button size and position
-                searchButton.setBounds(searchTextField.getX() + searchTextField.getWidth() + 10, 10, newSize.width / 50, 30);
-                
-                // Adjust attach1 size and position
-                attach1.setBounds(18, 50, newSize.width - 51, newSize.height - 100);
-                
-                scrollPane.setBounds(0, 0, newSize.width - 51, newSize.height - 100);
-                
-                // Adjust profile image size and position relative to the frame width
-                webImagePanel.setBounds(newSize.width - 140, 5, 40, 40);
-                
-                // Adjust create project button size and position relative to the frame width
-                createProjectButton.setBounds(newSize.width - 300, 5, 50, 40);
-                
-                // Adjust remove project button size and position relative to the frame width
-                removeProjectButton.setBounds(newSize.width - 370, 5, 50, 40);
+                compResize.run();
             }
         });
-
         
         
         
@@ -223,10 +230,10 @@ public class SearchForProjectsInterface {
     }
     
     private final Executor cachedThreadPool;
-    List<List<Object>> projects = new ArrayList<>();
+    List<List<Object>> projects;
     {
         cachedThreadPool = Executors.newCachedThreadPool();
-        
+        projects = Collections.synchronizedList(new ArrayList<>());
     }
     
     private void getProjects(char startingLetter, String wholeWord, JTextArea searchTextField) {
@@ -239,7 +246,7 @@ public class SearchForProjectsInterface {
         
         cachedThreadPool.execute(() -> {
             try (Connection conn = ds.getConnection();
-                 Statement st = conn.createStatement()) {
+                Statement st = conn.createStatement()) {
                 ResultSet resultSet = st.executeQuery(query);
                 
                 while (resultSet.next()) {
@@ -259,11 +266,11 @@ public class SearchForProjectsInterface {
                     System.out.println(percentage);
                 }
                 
-                searchTextField.setText("");
-                if (projects.isEmpty()) {
+                if (projects.isEmpty() || searchTextField.getText().isEmpty()) {
                     searchTextField.setText("No results returned from the search!");
                     return;
                 }
+                searchTextField.setText("");
                 
                 Collections.sort(projects, new Comparator<List<Object>>() {
                     @Override

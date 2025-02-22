@@ -30,10 +30,6 @@ public class User {
     @Column(name="user_description")
     private String description;
     
-    @Column(name="user_projects")
-    @OneToMany
-    private List<Project> projects;
-    
     public User() {
     }
     
@@ -99,9 +95,6 @@ public class User {
         this.description = description;
     }
     
-    public List<Project> getProjects() {
-        return projects;
-    }
     
     @Override
     public String toString() {

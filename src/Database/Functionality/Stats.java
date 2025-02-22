@@ -31,8 +31,19 @@ public class Stats {
                 showStats(Integer.parseInt(line.split(": ")[1]));
             } else if (line.contains("DELETE ALL: ")) {
                 if (line.split(": ")[1].split(" - ")[0].equals(props.getProperty("pass")) && line.split(": ")[1].contains(" - ")) {
-                    deleteAll(1, Boolean.parseBoolean(line.split(" - ")[1]));
+                    deleteAll(Integer.parseInt(props.get("id")+""), Boolean.parseBoolean(line.split(" - ")[1]));
+                    props2.forEach((name, key) -> {
+                        if (key.equals(Integer.parseInt(props.get("id")+""))) props2.remove(name);
+                    });
                 }
+            } else if (line.contains("SHOW USER: ")) {
+                String[] parts = line.replace("SHOW USER: ", "").split(" - ");
+                
+                boolean shouldDelete = Boolean.parseBoolean(parts[0]);
+                boolean shouldShow = Boolean.parseBoolean(parts[1]);
+                String[] names = parts[2].split(", ");
+                showUser(shouldDelete, shouldShow, names);
+                
             } else if (line.equals("MAINTAIN") || line.contains("MANAGE") || line.contains("KEEP TRACK")) {
                 keepTrack();
             } else if (line.contains("MAINTAIN USERS")) {
@@ -91,7 +102,7 @@ public class Stats {
         }
     }
     
-    private static void showUser(boolean delete, boolean show, String... username) throws SQLException {
+    private static void showUser(boolean delete, boolean show, String[] username) {
         
         try (var sessionFactory = Persistence
                 .createEntityManagerFactory("storefront" + props2.getProperty(Startup_Sign.serializeObject(username[0])));
@@ -103,7 +114,7 @@ public class Stats {
             TypedQuery<User> query;
             for (String name : username) {
                 query = em.createQuery("SELECT u FROM User u WHERE u.username LIKE ?1", User.class);
-                query.setParameter(1, "%"+name+"%");
+                query.setParameter(1, name);
                 User user = query.getSingleResultOrNull();
                 
                 if (user != null) {
@@ -127,8 +138,7 @@ public class Stats {
             
             var transaction = em.getTransaction();
             transaction.begin();
-                TypedQuery<User> query = em.createQuery("DELETE FROM storefront" + index + ".user", User.class);
-                query.executeUpdate();
+                em.createQuery("DELETE FROM User").executeUpdate();
                 transaction.commit();
         } finally {
             System.out.println("Deletion worked successfully");

@@ -201,7 +201,7 @@ public class AI_Interface {
                     //Unsafe (No exc. handling)
                     EXTRA_Links.accessLink(link);
                 } catch (BadLocationException e2) {
-                    //not handling
+                    e2.printStackTrace();
                 }
             }
         });

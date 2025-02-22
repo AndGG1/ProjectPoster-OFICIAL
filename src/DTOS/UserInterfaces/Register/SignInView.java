@@ -17,6 +17,8 @@ import java.nio.file.StandardOpenOption;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.ResourceBundle;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class SignInView {
     private final JFrame frame;
@@ -464,11 +466,10 @@ public class SignInView {
                 Runnable myRunnable = () -> {
                     boolean flag = false;
                     
-                    try {
+                    try (Stream<String> names = Files.lines(Path.of("users.properties"))) {
                         String name = nameField.getText();
                         if (name.replaceAll(" ", "").length() < 3 ||
-                                Files.readAllLines(Path.of("users.properties"))
-                                        .contains(Startup_Sign.serializeObject(name))) {
+                                names.collect(Collectors.joining()).contains(Startup_Sign.serializeObject(name))) {
                             attach_Name.setBackground(Color.RED);
                         } else {
                             attach_Name.setBackground(Color.GRAY);
@@ -496,6 +497,7 @@ public class SignInView {
                         System.out.println("Ooops! Something Went Wrong!");
                         return;
                     }
+                    
                     synchronized (this) {
                         if (!Startup_Log.searchUser(nameField.getText())) {
                             Startup_Sign.addUser(nameField.getText(), String.valueOf(passField.getPassword()), linkField.getText(), imgSource[0], descriptionArea.getText());
