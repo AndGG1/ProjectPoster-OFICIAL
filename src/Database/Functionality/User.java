@@ -1,9 +1,8 @@
 package Database.Functionality;
 
 import DTOS.UserInterfaces.Activity.Project;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 
-import javax.persistence.*;
 import java.util.List;
 import java.util.StringJoiner;
 
@@ -74,6 +73,10 @@ public class User {
     
     public void setImg(String img) {
         this.img = img;
+    }
+    
+    public int getId() {
+        return id;
     }
     
     public void setId(int id) {

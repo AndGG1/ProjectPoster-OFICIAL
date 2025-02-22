@@ -34,10 +34,10 @@ public class SearchForProjectsInterface {
     private static Properties props = new Properties();
     
     public static void main(String[] args) {
-        new SearchForProjectsInterface("https://www.iconsdb.com/icons/preview/blue/info-xxl.png");
+        new SearchForProjectsInterface("https://www.iconsdb.com/icons/preview/blue/info-xxl.png", "X", "X");
     }
     
-    public SearchForProjectsInterface(String img) {
+    public SearchForProjectsInterface(String img, String name, String description) {
         // Main Part - Frame
         Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
         
@@ -63,7 +63,6 @@ public class SearchForProjectsInterface {
         frame.add(attach1);
         
         
-        
         // Search Label
         JLabel searchLabel = new JLabel("Search:");
         searchLabel.setFont(new Font("Arial", Font.BOLD, 25));
@@ -87,7 +86,6 @@ public class SearchForProjectsInterface {
         searchButton.setBackground(Color.LIGHT_GRAY);
         searchButton.setBounds(1660, 10, 30, 30); // Initial positioning
         frame.add(searchButton);
-        
         
         
         // Description Text Area
@@ -121,8 +119,16 @@ public class SearchForProjectsInterface {
         createProjectButton.setFocusPainted(false);
         frame.add(createProjectButton);
         
+        JButton removeProjectButton = new JButton("-");
+        removeProjectButton.setBackground(Color.LIGHT_GRAY);
+        removeProjectButton.setFont(new Font("Arial", Font.BOLD, 20));
+        removeProjectButton.setBounds(750, 5, 50, 40);
+        removeProjectButton.setBorderPainted(false);
+        removeProjectButton.setFocusPainted(false);
+        frame.add(removeProjectButton);
         
-            if (Locale.getDefault().equals(new Locale("ro", "RO"))) {
+        
+        if (Locale.getDefault().equals(new Locale("ro", "RO"))) {
                 searchLabel.setText("Cautare:");
             } else if (Locale.getDefault().equals(new Locale("de", "DE"))) {
                 searchLabel.setText("Suchen:");
@@ -151,9 +157,13 @@ public class SearchForProjectsInterface {
                 webImagePanel.setBounds(newSize.width - 140, 5, 40, 40);
                 
                 // Adjust create project button size and position relative to the frame width
-                createProjectButton.setBounds(newSize.width - 200, 5, 50, 40);
+                createProjectButton.setBounds(newSize.width - 300, 5, 50, 40);
+                
+                // Adjust remove project button size and position relative to the frame width
+                removeProjectButton.setBounds(newSize.width - 370, 5, 50, 40);
             }
         });
+
         
         
         
@@ -163,6 +173,7 @@ public class SearchForProjectsInterface {
                 if (e.getButton() != 1) return;
                 getProjects(searchTextField.getText().charAt(0), searchTextField.getText(), descriptionArea);
             }
+            
             @Override
             public void mouseEntered(MouseEvent e) {
                 searchButton.setFont(new Font("Arial", Font.BOLD, 29));
@@ -178,7 +189,7 @@ public class SearchForProjectsInterface {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (e.getButton() != 1) return;
-                new CreateProjectInterface("Create Project: ");
+                new CreateProjectInterface("Create Project: ", name);
             }
             
             @Override
@@ -189,6 +200,24 @@ public class SearchForProjectsInterface {
             @Override
             public void mouseExited(MouseEvent e) {
                 createProjectButton.setFont(new Font("Arial", Font.BOLD, 20));
+            }
+        });
+        
+        removeProjectButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getButton() != 1) return;
+                new RemoveProjectInterface("Remove Project: ", name);
+            }
+            
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                removeProjectButton.setFont(new Font("Arial", Font.BOLD, 30));
+            }
+            
+            @Override
+            public void mouseExited(MouseEvent e) {
+                removeProjectButton.setFont(new Font("Arial", Font.BOLD, 20));
             }
         });
     }

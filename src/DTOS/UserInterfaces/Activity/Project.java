@@ -1,17 +1,37 @@
 package DTOS.UserInterfaces.Activity;
 
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "projects")
 public class Project {
     
-    private final int id;
-    private final String name;
-    private final String description;
-    private final String link;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "project_id")
+    private int id;
     
-    public Project(int id, String name, String description, String link) {
+    @Column(name = "project_name")
+    private String name;
+    
+    @Column(name = "project_description")
+    private String description;
+    
+    @Column(name = "project_link")
+    private String link;
+    
+    @Column(name = "project_owner")
+    private String owner;
+    
+    public Project(int id, String name, String description, String link, String owner) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.link = link;
+        this.owner = owner;
+    }
+    
+    public Project() {
     }
     
     public final int getId() {
@@ -28,5 +48,9 @@ public class Project {
     
     public String getLink() {
         return link;
+    }
+    
+    public String getOwner() {
+        return owner;
     }
 }

@@ -11,12 +11,17 @@ import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.Locale;
+import java.util.Properties;
 import java.util.ResourceBundle;
 
 public class SignInView {
     private final JFrame frame;
     private static Consistency cons;
+    Properties props = new Properties();
 
     public SignInView() {
         //Resource Bundle
@@ -34,6 +39,14 @@ public class SignInView {
         frame.setLocationRelativeTo(null);
         frame.setLayout(null);
         frame.getContentPane().setBackground(Color.GRAY);
+        
+        try {
+            props.load(Files.newInputStream(Path.of("users.properties"), StandardOpenOption.READ));
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(frame, "An unexpected error encountered while logging to the application. Try again!",
+                    "Unknown error!", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
 
         JLabel attach1 = new JLabel();
         attach1.setBackground(Color.LIGHT_GRAY);
@@ -451,10 +464,20 @@ public class SignInView {
                 Runnable myRunnable = () -> {
                     boolean flag = false;
                     
-                    if (nameField.getText().replaceAll(" ", "").length() < 3) {
-                        flag = true;
+                    try {
+                        String name = nameField.getText();
+                        if (name.replaceAll(" ", "").length() < 3 ||
+                                Files.readAllLines(Path.of("users.properties"))
+                                        .contains(Startup_Sign.serializeObject(name))) {
+                            attach_Name.setBackground(Color.RED);
+                        } else {
+                            attach_Name.setBackground(Color.GRAY);
+                        }
+                    } catch (IOException ex) {
                         attach_Name.setBackground(Color.RED);
-                    } else attach_Name.setBackground(Color.GRAY);
+                        ex.printStackTrace(); // Optional: For debugging
+                    }
+                    
                     
                     if (passField.getText().length() < 6) {
                         flag = true;

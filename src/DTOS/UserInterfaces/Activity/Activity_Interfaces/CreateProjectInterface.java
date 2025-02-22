@@ -26,7 +26,7 @@ public class CreateProjectInterface {
     private JFrame frame;
     private static Properties props = new Properties();
     
-    public CreateProjectInterface(String title) {
+    public CreateProjectInterface(String title, String owner) {
         // Reset the state for each new instance
         givenData.clear();  // added to reset givenData
         currentQuestionIndex = 0;  // added to reset currentQuestionIndex
@@ -70,7 +70,7 @@ public class CreateProjectInterface {
             if (currentQuestionIndex < questions.length) {
                 frame.setTitle(questions[currentQuestionIndex]);
             } else {
-                handleProjectData(givenData);
+                handleProjectData(givenData, owner);
                 frame.dispose();  // Dispose the frame after handling project data
             }
         });
@@ -89,7 +89,7 @@ public class CreateProjectInterface {
   //      SwingUtilities.invokeLater(() -> new CreateProjectInterface(questions[0]));  // changed to pass the first question title
   //  }
     
-    public void handleProjectData(List<String> data) {
+    public void handleProjectData(List<String> data, String owner) {
         String name = data.get(0);
         String description = data.get(1);
         String link = data.get(2);
@@ -106,7 +106,7 @@ public class CreateProjectInterface {
             ps.setString(1, name);
             ps.setString(2, link);
             ps.setString(3, description);
-            ps.setString(4, );
+            ps.setString(4, owner);
             ps.addBatch();
             
             ps.executeBatch();

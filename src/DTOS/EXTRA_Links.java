@@ -28,7 +28,7 @@ public final class EXTRA_Links {
         try {
             img = ImageIO.read(new URL(s));
         } catch (IOException e) {
-            //Not handling
+            //not handling
         } finally {
             assert img != null;
             icons.add(new ImageIcon(img.getScaledInstance(40, 40, Image.SCALE_SMOOTH)));

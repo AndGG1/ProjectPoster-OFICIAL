@@ -120,7 +120,7 @@ public class WelcomePage {
             public void mouseClicked(MouseEvent e) {
                 if (e.getButton() == 1) {
                     frame.dispose();
-                    new SearchForProjectsInterface(img);
+                    new SearchForProjectsInterface(img, name, des);
                 }
             }
         });
