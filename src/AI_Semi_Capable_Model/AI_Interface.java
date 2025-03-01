@@ -37,7 +37,7 @@ public class AI_Interface {
     }
     
     public static void main(String[] args) {
-        new AI_Interface();
+        new AI_Semi_Capable_Model.AI_Interface();
     }
     
     public AI_Interface() {

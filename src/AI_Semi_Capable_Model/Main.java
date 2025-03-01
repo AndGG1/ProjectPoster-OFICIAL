@@ -30,10 +30,6 @@ public class Main {
         result = "";
     }
     
-    public static void main(String[] args) {
-        new AI_Interface();
-    }
-    
     private static final String recoverAccount = """
             RecoverAccount description...
             In developing
