@@ -5,6 +5,7 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,33 +26,32 @@ public class SimpleServerChannel {
                     System.out.printf("Client %s connected%n", clientChannel.socket().getRemoteSocketAddress());
                 }
                 
-                List<SocketChannel> socketChannels = new ArrayList<>();
-                for (SocketChannel client : socketChannels) {
+                for (SocketChannel client : clientChannels) {
                     try {
                         buffer.clear();
                         int bytesRead = client.read(buffer);
                         if (bytesRead == -1) {
                             System.out.printf("Client %s disconnected%n", client.socket().getRemoteSocketAddress());
-                            socketChannels.remove(client);
+                            clientChannels.remove(client);
                             client.close();
                         } else if (bytesRead > 0) {
                             buffer.flip();
                             byte[] data = new byte[buffer.remaining()];
                             buffer.get(data);
-                            String message = new String(data);
+                            String message = "\"%s\" ".formatted(new String(data, StandardCharsets.UTF_8));
                             
                             for (SocketChannel otherClient : clientChannels) {
-                                buffer.clear();
-                                buffer.put(("Message from " + client.socket().getRemoteSocketAddress() + ": " + message).getBytes());
-                                buffer.flip();
-                                while (buffer.hasRemaining()) {
-                                    otherClient.write(buffer);
-                                }
+                                    buffer.clear();
+                                    buffer.put(("Message from " + client.socket().getRemoteSocketAddress() + ": " + message).getBytes());
+                                    buffer.flip();
+                                    while (buffer.hasRemaining()) {
+                                        otherClient.write(buffer);
+                                    }
                             }
                         }
                     } catch (IOException e) {
                         System.out.printf("Client %s disconnected due to error%n", client.socket().getRemoteSocketAddress());
-                        socketChannels.remove(client);
+                        clientChannels.remove(client);
                         client.close();
                     }
                 }

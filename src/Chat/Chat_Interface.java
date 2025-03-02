@@ -7,22 +7,10 @@ import javax.swing.text.BadLocationException;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.IOException;
-import java.net.Socket;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
+
 
 public class Chat_Interface {
     private final JFrame frame;
-    private final static List<String> apis;
-    
-    static {
-        try {
-            apis = Files.readAllLines(Path.of("API_KEYS"));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
     
     public static void main(String[] args) {
         new Chat_Interface();
@@ -60,7 +48,6 @@ public class Chat_Interface {
         nameField.setText("text...");
         nameField.setBounds(-2, 892, 902, 50);  // Set bounds for nameField
         attach1.add(nameField);
-        Client client = new Client(nameField);
         
         // Input Sender
         JLabel iconLabel = new JLabel();
@@ -84,6 +71,7 @@ public class Chat_Interface {
         descriptionArea.setLineWrap(true);
         descriptionArea.setWrapStyleWord(true);
         descriptionArea.setEditable(false);
+        Client client = new Client(descriptionArea);
         
         
         JScrollPane scrollPane = new JScrollPane(descriptionArea);
@@ -114,7 +102,7 @@ public class Chat_Interface {
             public void mouseClicked(MouseEvent e) {
                 if (e.getButton() != 1) return;
                 try {
-                    client.sendMessageToServer(nameField, client.getSocket());
+                    client.sendMessageToServer(nameField.getText());
                 } catch (IOException ex) {
                     throw new RuntimeException(ex);
                 }
