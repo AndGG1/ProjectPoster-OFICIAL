@@ -2,7 +2,6 @@ package DTOS.UserInterfaces.Activity.Activity_Interfaces;
 
 import DTOS.UserInterfaces.Activity.Search_Feature;
 import com.mysql.cj.jdbc.MysqlDataSource;
-import org.apache.commons.collections.list.SynchronizedList;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -292,6 +291,10 @@ public class SearchForProjectsInterface {
                 e.printStackTrace();
             }
         });
+    }
+    
+    private void accessProject() {
+    
     }
 }
 
