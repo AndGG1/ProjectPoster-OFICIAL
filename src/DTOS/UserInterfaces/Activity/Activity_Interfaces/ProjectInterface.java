@@ -21,7 +21,7 @@ import java.util.Random;
 
 public class ProjectInterface {
      Properties props = new Properties();
-    SimpleServerChannel serverChannel = new SimpleServerChannel();
+     SimpleServerChannel serverChannel = new SimpleServerChannel();
     
     public ProjectInterface(String projectName, String ownerName, String description, String link) {
         // Generate a random color (orange, cyan, or yellow)
@@ -35,7 +35,7 @@ public class ProjectInterface {
         JFrame frame = new JFrame("Project Interface");
         frame.setSize(1000, 1000);
         frame.setResizable(false);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.setLayout(null);
         frame.getContentPane().setBackground(Color.LIGHT_GRAY);
         
@@ -57,7 +57,7 @@ public class ProjectInterface {
         // Create the description label
         JLabel descriptionLabel = new JLabel("<html>" + description + "</html>");
         descriptionLabel.setBounds(150, 80, 700, 600); // Starts from the top and stretches down
-        descriptionLabel.setHorizontalAlignment(SwingConstants.LEFT);
+        descriptionLabel.setHorizontalAlignment(SwingConstants.CENTER);
         descriptionLabel.setFont(new Font("Arial", Font.PLAIN, 16));
         descriptionLabel.setOpaque(true);
         descriptionLabel.setBackground(randomColor); // Assign random highlight color
@@ -121,6 +121,7 @@ public class ProjectInterface {
         joinChatButton.addActionListener(e -> {
             String selectQuery = "SELECT id, name, ip_address, port FROM servers.locations WHERE name = ?";
             String addQuery = "INSERT INTO servers.locations (name, ip_address, port) VALUES (?, ?, ?)";
+            frame.setState(Frame.ICONIFIED);
             try (Connection connection = ds.getConnection();
                  PreparedStatement statement = connection.prepareStatement(selectQuery);
                  PreparedStatement ps = connection.prepareStatement(addQuery)) {
@@ -129,7 +130,7 @@ public class ProjectInterface {
                 
                 if (!resultSet.next()) {
                     String IP_ADDRESS = InetAddress.getLocalHost().getHostAddress();
-                    new Chat_Interface(serverChannel, true, IP_ADDRESS);
+                    new Chat_Interface(serverChannel, true, IP_ADDRESS, projectName, frame);
                     ps.setString(1, projectName);
                     ps.setString(2, IP_ADDRESS);
                     ps.setInt(3, 5000);
@@ -138,8 +139,7 @@ public class ProjectInterface {
                     ps.executeBatch();
                     ps.clearBatch();
                 } else {
-                    System.out.println("e");
-                    new Chat_Interface(serverChannel, false, resultSet.getString(2));
+                    new Chat_Interface(serverChannel, false, resultSet.getString(3), projectName, frame);
                 }
             } catch (SQLException | UnknownHostException ex) {
                 throw new RuntimeException(ex);

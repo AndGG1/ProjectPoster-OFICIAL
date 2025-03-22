@@ -6,19 +6,20 @@ import java.nio.ByteBuffer;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class SimpleServerChannel {
-    private List<SocketChannel> clientChannels;
+    private List<SocketChannel> clientChannels = new CopyOnWriteArrayList<>();
+    private List<Chat_Interface> clientInterfaces = new ArrayList<>();
     
     public void start() {
             try (ServerSocketChannel serverChannel = ServerSocketChannel.open()) {
                 serverChannel.socket().bind(new InetSocketAddress(5000));
                 serverChannel.configureBlocking(false);
                 System.out.println("Server is listening on port " + serverChannel.socket().getLocalPort());
-                clientChannels = new CopyOnWriteArrayList<>();
                 ByteBuffer buffer = ByteBuffer.allocate(1024);
                 
                 while (true) {
@@ -68,5 +69,9 @@ public class SimpleServerChannel {
     
     public List<SocketChannel> getClientChannels() {
         return clientChannels;
+    }
+    
+    public List<Chat_Interface> getClientInterfaces() {
+        return clientInterfaces;
     }
 }

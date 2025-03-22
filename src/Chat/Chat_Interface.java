@@ -1,35 +1,33 @@
 package Chat;
 
 import DTOS.EXTRA_Links;
+import com.mysql.cj.jdbc.MysqlDataSource;
 
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.util.ArrayList;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.Properties;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
-import java.util.List;
 import java.util.function.Consumer;
 
 public class Chat_Interface {
     private final JFrame frame;
-    private static List<Chat_Interface> clientInterfaces;
     
-    public static void main(String[] args) throws IOException {
-        final String IP = InetAddress.getLocalHost().getHostAddress();
-        SimpleServerChannel serverChannel = new SimpleServerChannel();
-        var c1 = new Chat_Interface(serverChannel, true, IP);
-        var c2 = new Chat_Interface(serverChannel, false, IP);
-        var c3 = new Chat_Interface(serverChannel, false, IP);
-        clientInterfaces.addAll(List.of(c1, c2, c3));
-    }
-    
-    public Chat_Interface(SimpleServerChannel serverChannel, boolean ownerOfServer, String IPAddress) {
-        if (ownerOfServer) new Thread(serverChannel::start).start();
-        clientInterfaces = new ArrayList<>();
+    public Chat_Interface(SimpleServerChannel serverChannel, boolean ownerOfServer, String IPAddress, String projectName, Frame projectInterface) {
+        if (ownerOfServer) {
+            new Thread(serverChannel::start).start();
+            
+        }
+        serverChannel.getClientInterfaces().add(this);
         
         // Main Part - Frame
         frame = new JFrame();
@@ -39,6 +37,7 @@ public class Chat_Interface {
         frame.setLocationRelativeTo(null);
         frame.setLayout(null);
         frame.getContentPane().setBackground(Color.GRAY);
+        frame.setAlwaysOnTop(true);
         
         JLabel attach1 = new JLabel();
         attach1.setBackground(Color.LIGHT_GRAY);
@@ -160,10 +159,22 @@ public class Chat_Interface {
         
         
         
-        
+        Properties props = new Properties();
+        try {
+            props.load(Files.newInputStream(Path.of("storefront.properties"), StandardOpenOption.READ));
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(frame, "An error occurred", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+        MysqlDataSource ds = new MysqlDataSource();
+        ds.setServerName("localhost");
+        ds.setPortNumber(3306);
+        ds.setUser(props.getProperty("user"));
+        ds.setPassword(props.getProperty("pass"));
+        String removeQuery = "DELETE FROM servers.locations WHERE name = ?";
         Consumer<Client> closeClient = c -> {
             frame.dispose();
             client.close();
+            projectInterface.setState(Frame.NORMAL);
             
             if (ownerOfServer) {
                 serverChannel.getClientChannels().forEach(client1 -> {
@@ -173,7 +184,15 @@ public class Chat_Interface {
                         //do nothing
                     }
                 });
-                clientInterfaces.forEach(client1 -> client1.frame.dispose());
+                serverChannel.getClientInterfaces().forEach(client1 -> client1.frame.dispose());
+            }
+            
+            try (Connection connection = ds.getConnection();
+                 PreparedStatement preparedStatement = connection.prepareStatement(removeQuery)) {
+                preparedStatement.setString(1, projectName);
+                preparedStatement.execute();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
             }
         };
         
@@ -237,10 +256,12 @@ public class Chat_Interface {
             while (true) {
                 try {
                     TimeUnit.SECONDS.sleep(3);
+                    if (serverChannel.getClientChannels() != null) {
+                        statusButton.setText(serverChannel.getClientChannels().size() + "");
+                    }
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
-                statusButton.setText(serverChannel.getClientChannels().size() + "");
             }
         };
         new Thread(runnable).start();

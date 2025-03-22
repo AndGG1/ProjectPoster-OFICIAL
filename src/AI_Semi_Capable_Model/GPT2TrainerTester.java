@@ -11,6 +11,7 @@ import org.apache.http.util.EntityUtils;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
@@ -49,13 +50,11 @@ public class GPT2TrainerTester {
                 "Q: How do app developers address political concerns? A: Developers implement privacy policies, content moderation guidelines, and transparency reports to address these concerns.\n" +
                 "\n" +
                 "Q: What role do apps play in political campaigns? A: Apps are used for campaign outreach, voter engagement, and spreading political messages.";
-        String inputText = "What an AI Model?";
         
         try {
-           // fineTuneModel(trainingData);
-            interactWithModel(inputText);
+            fineTuneModel(trainingData, API_KEY);
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage() + "\n" + Arrays.toString(e.getStackTrace()));
         }
     }
     
@@ -95,46 +94,6 @@ public class GPT2TrainerTester {
         bf = new BufferedReader(new InputStreamReader(connection.getInputStream()));
         
         return bf.lines().collect(Collectors.joining());
-    }
-    
-    //not learned
-    private static void interactWithModel(String inputText) throws IOException {
-        CloseableHttpClient httpClient = HttpClients.createDefault();
-        HttpPost httpPost = new HttpPost(API_URL);
-        httpPost.setHeader("Authorization", "Bearer " + API_KEY);
-        httpPost.setHeader("Content-Type", "application/json");
-        
-        JsonObject json = new JsonObject();
-        json.addProperty("inputs", inputText);
-        StringEntity entity = new StringEntity(json.toString());
-        httpPost.setEntity(entity);
-        
-        CloseableHttpResponse response = httpClient.execute(httpPost);
-        String responseBody = EntityUtils.toString(response.getEntity());
-        System.out.println("Interaction Response Body: " + responseBody);
-        
-        JsonElement jsonElement = JsonParser.parseString(responseBody);
-        if (jsonElement.isJsonArray()) {
-            JsonArray jsonArray = jsonElement.getAsJsonArray();
-            for (JsonElement element : jsonArray) {
-                if (element.isJsonObject()) {
-                    JsonObject generatedObj = element.getAsJsonObject();
-                    if (generatedObj.has("generated_text")) {
-                        String generatedText = generatedObj.get("generated_text").getAsString();
-                        System.out.println("Generated Text: " + generatedText);
-                    }
-                }
-            }
-        } else if (jsonElement.isJsonObject()) {
-            JsonObject jsonResponse = jsonElement.getAsJsonObject();
-            if (jsonResponse.has("error")) {
-                String error = jsonResponse.get("error").getAsString();
-                System.out.println("Interaction Error: " + error);
-            }
-        }
-        
-        response.close();
-        httpClient.close();
     }
     
     public static void learnTheAi(List<String> linesToLearn, Executor exec, String api) {

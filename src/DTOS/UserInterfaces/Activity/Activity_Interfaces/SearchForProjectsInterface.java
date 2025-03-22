@@ -5,6 +5,7 @@ import com.mysql.cj.jdbc.MysqlDataSource;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.text.BadLocationException;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
@@ -44,7 +45,7 @@ public class SearchForProjectsInterface {
         frame.setResizable(true);
         frame.setLocationRelativeTo(null);
         frame.getContentPane().setBackground(Color.GRAY);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.setLayout(null);
         frame.setVisible(true);
         
@@ -226,6 +227,25 @@ public class SearchForProjectsInterface {
                 removeProjectButton.setFont(new Font("Arial", Font.BOLD, 20));
             }
         });
+        
+        descriptionArea.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getButton() != 1) return;
+                
+                try {
+                    int line = descriptionArea.getLineOfOffset(descriptionArea.getCaretPosition());
+                    String projectLine = descriptionArea.getText().split("\\R")[line];
+                    
+                    String name = projectLine.split(", ")[0].split("Project")[1]; name = name.substring(1);
+                    String description = projectLine.split(", ")[2];
+                    String link = projectLine.split(", ")[1];
+                    new ProjectInterface(name, "unknown", description.substring(0, description.length()-1), link);
+                } catch (BadLocationException e2) {
+                    e2.printStackTrace();
+                }
+            }
+        });
     }
     
     private final Executor cachedThreadPool;
@@ -291,10 +311,6 @@ public class SearchForProjectsInterface {
                 e.printStackTrace();
             }
         });
-    }
-    
-    private void accessProject() {
-    
     }
 }
 

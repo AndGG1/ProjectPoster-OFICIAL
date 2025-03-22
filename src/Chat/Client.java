@@ -15,10 +15,11 @@ public class Client {
     private String username;
     private int onlineCount = 1;
     private Frame frame;
-    
+
     public Client(JTextArea field, String username, Frame frame, String host) {
         try {
-            socket = new Socket("127.0.0.1", 5000);
+            System.out.println(host);
+            socket = new Socket(host, 5000);
             output = new PrintWriter(socket.getOutputStream(), true);
             input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             this.username = username;
