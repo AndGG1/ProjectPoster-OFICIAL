@@ -85,10 +85,6 @@ public class CreateProjectInterface {
         frame.setVisible(true);
     }
     
-//    public static void beginQuestionsForProject() {
-  //      SwingUtilities.invokeLater(() -> new CreateProjectInterface(questions[0]));  // changed to pass the first question title
-  //  }
-    
     public void handleProjectData(List<String> data, String owner) {
         String name = data.get(0);
         String description = data.get(1);
@@ -115,8 +111,4 @@ public class CreateProjectInterface {
             JOptionPane.showMessageDialog(frame, "An error occurred", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
-    
-  //  public static void main(String[] args) {
-  //      beginQuestionsForProject();
-   // }
 }

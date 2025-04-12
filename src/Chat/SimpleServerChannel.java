@@ -6,14 +6,12 @@ import java.nio.ByteBuffer;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class SimpleServerChannel {
     private List<SocketChannel> clientChannels = new CopyOnWriteArrayList<>();
-    private List<Chat_Interface> clientInterfaces = new ArrayList<>();
     
     public void start() {
             try (ServerSocketChannel serverChannel = ServerSocketChannel.open()) {
@@ -66,12 +64,9 @@ public class SimpleServerChannel {
                 throw new RuntimeException(e);
             }
     }
+
     
     public List<SocketChannel> getClientChannels() {
         return clientChannels;
-    }
-    
-    public List<Chat_Interface> getClientInterfaces() {
-        return clientInterfaces;
     }
 }

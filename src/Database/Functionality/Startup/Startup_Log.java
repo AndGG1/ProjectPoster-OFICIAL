@@ -23,7 +23,6 @@ public class Startup_Log {
             userProperties.load(Files.newInputStream(Path.of("users.properties"), StandardOpenOption.READ));
             return userProperties.getProperty(Startup_Sign.serializeObject(username)) != null;
         } catch (IOException e) {
-            e.printStackTrace();
             return false;
         }
     }
@@ -32,18 +31,13 @@ public class Startup_Log {
         try {
             serverProperties.load(Files.newInputStream(Path.of("storefront.properties"), StandardOpenOption.READ));
         } catch (IOException e) {
-            e.printStackTrace();
             return false;
         }
         
         String databaseName = "storefront" + userProperties.getProperty(Startup_Sign.serializeObject(username));
-        if (databaseName == null) {
-            System.out.println("Database name not found for username: " + username);
-            return false;
-        }
+        if (databaseName == null) return false;
         
         String query = String.format("SELECT * FROM %s.user WHERE user_name='%s' AND user_pass='%s'", databaseName, username, password);
-        System.out.println("Query: " + query);
         
         MysqlDataSource ds = new MysqlDataSource();
         ds.setServerName("localhost");
@@ -63,16 +57,12 @@ public class Startup_Log {
                         rs.getString("user_img"),
                         rs.getString("user_description")
                 );
-                System.out.println(user);
-                System.out.println("User found: " + username);
                 return true;
             } else {
-                System.out.println("No user found with the given username and password.");
                 return false;
             }
             
         } catch (SQLException e) {
-            e.printStackTrace();
             return false;
         }
     }

@@ -75,7 +75,7 @@ public class RemoveProjectInterface {
                 JOptionPane.showMessageDialog(frame, "You have successfully deleted project: " + projectName,
                         "Project Deleted", JOptionPane.INFORMATION_MESSAGE);
             } catch (SQLException e) {
-                //not handling
+                //ignore
             }
     }
     
@@ -90,13 +90,12 @@ public class RemoveProjectInterface {
         try (Connection connection = ds.getConnection(); PreparedStatement ps = connection.prepareStatement(query)) {
             ps.setString(1, owner);
             ps.setString(2, projectName);
-            System.out.println(owner + " " + projectName);
             
             try (ResultSet rs = ps.executeQuery()) {
                 return rs.next();
             }
         } catch (SQLException e) {
-            e.printStackTrace(); // Consider using a logger
+            //ignore
         }
         return false;
     }

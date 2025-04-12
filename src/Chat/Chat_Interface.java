@@ -22,12 +22,10 @@ import java.util.function.Consumer;
 public class Chat_Interface {
     private final JFrame frame;
     
-    public Chat_Interface(SimpleServerChannel serverChannel, boolean ownerOfServer, String IPAddress, String projectName, Frame projectInterface) {
+    public Chat_Interface(SimpleServerChannel serverChannel, boolean ownerOfServer, String IPAddress, String projectName, JFrame projectInterface, JButton joinButton) {
         if (ownerOfServer) {
             new Thread(serverChannel::start).start();
-            
         }
-        serverChannel.getClientInterfaces().add(this);
         
         // Main Part - Frame
         frame = new JFrame();
@@ -116,8 +114,7 @@ public class Chat_Interface {
         statusButton.setOpaque(true);
         attach1.add(statusButton);
         
-        Client client = new Client(descriptionArea, "Bot" + new Random().nextInt(1, 10), frame, IPAddress);
-        
+        Client client = new Client(descriptionArea, "Bot" + new Random().nextInt(1, 10), frame, IPAddress, projectInterface, statusButton);
         
         attach1.setComponentZOrder(scrollPane, 0);
         attach1.setComponentZOrder(nameField, 0);
@@ -172,19 +169,17 @@ public class Chat_Interface {
         ds.setPassword(props.getProperty("pass"));
         String removeQuery = "DELETE FROM servers.locations WHERE name = ?";
         Consumer<Client> closeClient = c -> {
-            frame.dispose();
-            client.close();
             projectInterface.setState(Frame.NORMAL);
             
             if (ownerOfServer) {
-                serverChannel.getClientChannels().forEach(client1 -> {
-                    try {
-                        client1.close();
-                    } catch (IOException ex) {
-                        //do nothing
-                    }
-                });
-                serverChannel.getClientInterfaces().forEach(client1 -> client1.frame.dispose());
+                try {
+                    client.sendMessageToServer("#ER86Yt42//EmilutCuParulCretBagaPulaInCotet", true);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            } else {
+                frame.dispose();
+                client.close();
             }
             
             try (Connection connection = ds.getConnection();
@@ -251,19 +246,22 @@ public class Chat_Interface {
         });
         
         
-        
-        Runnable runnable = () -> {
-            while (true) {
-                try {
-                    TimeUnit.SECONDS.sleep(3);
-                    if (serverChannel.getClientChannels() != null) {
-                        statusButton.setText(serverChannel.getClientChannels().size() + "");
+            Runnable runnable = () -> {
+                while (true) {
+                    try {
+                        TimeUnit.SECONDS.sleep(3);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
                     }
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
                 }
+            };
+            new Thread(runnable).start();
+        
+        frame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                joinButton.setEnabled(true);
             }
-        };
-        new Thread(runnable).start();
+        });
     }
 }

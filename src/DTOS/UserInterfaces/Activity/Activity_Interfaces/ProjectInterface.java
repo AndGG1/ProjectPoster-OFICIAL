@@ -8,6 +8,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URI;
@@ -16,14 +18,21 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.sql.*;
+import java.util.Locale;
 import java.util.Properties;
 import java.util.Random;
+import java.util.ResourceBundle;
 
 public class ProjectInterface {
-     Properties props = new Properties();
-     SimpleServerChannel serverChannel = new SimpleServerChannel();
+    static Properties props = new Properties();
+    SimpleServerChannel serverChannel = new SimpleServerChannel();
     
-    public ProjectInterface(String projectName, String ownerName, String description, String link) {
+    public ProjectInterface(String projectName, String ownerName, String description, String link, JTextArea area) throws IOException {
+        ResourceBundle rb = null;
+        if (Locale.getDefault().toString().equals("ro_RO") || Locale.getDefault().toString().equals("de_DE")) {
+            rb = ResourceBundle.getBundle("BasicText", Locale.getDefault());
+        }
+        
         // Generate a random color (orange, cyan, or yellow)
         Color[] colors = {Color.ORANGE, Color.CYAN, Color.YELLOW};
         Color randomColor = colors[new Random().nextInt(colors.length)];
@@ -96,7 +105,7 @@ public class ProjectInterface {
                 try {
                     Desktop.getDesktop().browse(new URI(link));
                 } catch (Exception ex) {
-                    ex.printStackTrace();
+                    //ignore
                 }
             }
         });
@@ -111,6 +120,10 @@ public class ProjectInterface {
         joinChatButton.setFocusPainted(false); // Remove the blue aura when clicked
         joinChatButton.setBorderPainted(false); // Remove default borders
         
+        if (rb != null) {
+            joinChatButton.setText(rb.getString("join"));
+        }
+        
         // Add an action listener for the button
         MysqlDataSource ds = new MysqlDataSource();
         ds.setServerName("localhost");
@@ -119,8 +132,10 @@ public class ProjectInterface {
         ds.setPassword(props.getProperty("pass"));
         
         joinChatButton.addActionListener(e -> {
-            String selectQuery = "SELECT id, name, ip_address, port FROM servers.locations WHERE name = ?";
-            String addQuery = "INSERT INTO servers.locations (name, ip_address, port) VALUES (?, ?, ?)";
+            joinChatButton.setEnabled(false);
+            
+            String selectQuery = "SELECT id, name, ip_address, port, users FROM servers.locations WHERE name = ?";
+            String addQuery = "INSERT INTO servers.locations (name, ip_address, port, users) VALUES (?, ?, ?, ?)";
             frame.setState(Frame.ICONIFIED);
             try (Connection connection = ds.getConnection();
                  PreparedStatement statement = connection.prepareStatement(selectQuery);
@@ -130,18 +145,27 @@ public class ProjectInterface {
                 
                 if (!resultSet.next()) {
                     String IP_ADDRESS = InetAddress.getLocalHost().getHostAddress();
-                    new Chat_Interface(serverChannel, true, IP_ADDRESS, projectName, frame);
+                    new Chat_Interface(serverChannel, true, IP_ADDRESS, projectName, frame, joinChatButton);
                     ps.setString(1, projectName);
                     ps.setString(2, IP_ADDRESS);
                     ps.setInt(3, 5000);
+                    ps.setString(4, "user");
                     ps.addBatch();
                     
                     ps.executeBatch();
                     ps.clearBatch();
                 } else {
-                    new Chat_Interface(serverChannel, false, resultSet.getString(3), projectName, frame);
+                    ps.setString(1, projectName);
+                    ps.setString(2, String.valueOf(resultSet.getString(3)));
+                    ps.setInt(3, resultSet.getInt(4));
+                    ps.setString(4, resultSet.getString(5) + ", " + "user");
+                    ps.addBatch();
+                    ps.executeBatch();
+                    ps.clearBatch();
+                    new Chat_Interface(serverChannel, false, resultSet.getString(3), projectName, frame, joinChatButton);
                 }
             } catch (SQLException | UnknownHostException ex) {
+                JOptionPane.showMessageDialog(frame, "An error occurred while joining the chat!", "Error", JOptionPane.ERROR_MESSAGE);
                 throw new RuntimeException(ex);
             }
         });
@@ -149,13 +173,20 @@ public class ProjectInterface {
         
         // Make the frame visible
         frame.setVisible(true);
+        
+        frame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                area.setEnabled(true);
+            }
+        });
     }
     
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         // Example usage
         new ProjectInterface("Amazing Project", "Andrei",
                 "This is a detailed and captivating project description that will now be displayed over multiple lines. "
                         + "The description can go on and on to test how it dynamically adjusts in the label.",
-                "https://example.com");
+                "https://example.com", new JTextArea());
     }
 }

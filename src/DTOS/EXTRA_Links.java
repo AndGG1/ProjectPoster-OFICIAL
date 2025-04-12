@@ -52,7 +52,7 @@ public final class EXTRA_Links {
     
     
     //Link Validation
-    public static boolean checkAbilityToCreate(String link)  {
+    public static boolean checkAbilityToCreate(String link) {
         if (link.startsWith("http://") || link.startsWith("https://") && !link.equals("https://site.com/John")) {
             
             Pattern emailPattern = Pattern.compile
@@ -61,6 +61,12 @@ public final class EXTRA_Links {
             Matcher matcher = emailPattern.matcher(checkOn);
             
             if (matcher.find()) {
+                try {
+                    URI uri = new URI(link);
+                    URL url = uri.toURL();
+                } catch (Exception e) {
+                    return false;
+                }
                 return valid_Hyper_Text_Transfer_Protocol(link);
             }
         }
@@ -79,27 +85,10 @@ public final class EXTRA_Links {
             }
             
         } catch (IOException e) {
-            //TODO - handle
+            return false;
         }
         
         return false;
-    }
-    
-    public static void accessLink(String link) {
-        URI uri;
-        try  {
-            uri = new URI(link);
-            
-            if (Desktop.isDesktopSupported()) {
-                try {
-                    Desktop.getDesktop().browse(uri);
-                } catch (IOException e) {
-                    //not handling
-                }
-            }
-        } catch (URISyntaxException e) {
-            //not handling
-        }
     }
     
     private static class ContentValidator {
@@ -117,10 +106,28 @@ public final class EXTRA_Links {
                     }
                 }
                 in.close();
+                
                 return true;
             } catch (IOException e) {
                 return false;
             }
+        }
+    }
+    
+    public static void accessLink(String link) {
+        URI uri;
+        try {
+            uri = new URI(link);
+            
+            if (Desktop.isDesktopSupported()) {
+                try {
+                    Desktop.getDesktop().browse(uri);
+                } catch (IOException e) {
+                    //not handling
+                }
+            }
+        } catch (URISyntaxException e) {
+            //not handling
         }
     }
 }

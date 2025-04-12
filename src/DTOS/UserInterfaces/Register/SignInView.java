@@ -265,7 +265,6 @@ public class SignInView {
 
         //Icon Label Listeners
         final String[] imgSource = new String[1];
-        System.out.println(imgSource[0]);
         iconLabel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -283,7 +282,6 @@ public class SignInView {
                                 if (img != null) {
                                     img = img.getScaledInstance(200, 250, Image.SCALE_SMOOTH);
                                     imgSource[0] = fileChooser.getSelectedFile().getPath();
-                                    System.out.println(imgSource[0]);
                                     iconLabel.setIcon(new ImageIcon(img));
                                 } else {
                                     Image img2 = ImageIO.read(new URL("https://avatars.githubusercontent.com/u/154756433?v=4&size=64"));
@@ -293,7 +291,8 @@ public class SignInView {
                                 }
                                 iconLabel.setText("");
                             } catch (IOException e2) {
-                                //do nothing
+                                JOptionPane.showMessageDialog(frame, "Failed to load the selected image. Please try another file.",
+                                        "Error", JOptionPane.ERROR_MESSAGE);
                             }
                         }
                     }
@@ -418,7 +417,7 @@ public class SignInView {
         attach_Link.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                EXTRA_Links.accessLink(linkField.getText());
+                if (attach_Link.getText().contains("Click") && EXTRA_Links.checkAbilityToCreate(linkField.getText())) EXTRA_Links.accessLink(linkField.getText());
             }
         });
         
@@ -476,7 +475,6 @@ public class SignInView {
                         }
                     } catch (IOException ex) {
                         attach_Name.setBackground(Color.RED);
-                        ex.printStackTrace(); // Optional: For debugging
                     }
                     
                     
@@ -490,7 +488,14 @@ public class SignInView {
                     if (!bool) {
                         flag = true;
                         attach_Link.setBackground(Color.RED);
-                    } else attach_Link.setBackground(Color.GRAY);
+                        linkField.setForeground(Color.BLACK);
+                        attach_Link.setText("LINK:");
+                    } else {
+                        attach_Link.setBackground(Color.GRAY);
+                        linkField.setForeground(Color.CYAN);
+                        attach_Link.setText("LINK(Click):");
+                    }
+                    
                     
                     
                     if (flag) {
@@ -500,11 +505,10 @@ public class SignInView {
                     
                     synchronized (this) {
                         if (!Startup_Log.searchUser(nameField.getText())) {
-                            Startup_Sign.addUser(nameField.getText(), String.valueOf(passField.getPassword()), linkField.getText(), imgSource[0], descriptionArea.getText());
-                            System.out.println("Successfully Added User: " + nameField.getText());
-                            
-                            new WelcomePage(imgSource[0] == null ? "https://avatars.githubusercontent.com/u/154756433?v=4&size=64" : imgSource[0], nameField.getText(), descriptionArea.getText());
-                            frame.dispose();
+                            if (Startup_Sign.addUser(nameField.getText(), String.valueOf(passField.getPassword()), linkField.getText(), imgSource[0], descriptionArea.getText())) {
+                                new WelcomePage(imgSource[0] == null ? "https://avatars.githubusercontent.com/u/154756433?v=4&size=64" : imgSource[0], nameField.getText(), descriptionArea.getText());
+                                frame.dispose();
+                            }
                         }
                     }
                 };

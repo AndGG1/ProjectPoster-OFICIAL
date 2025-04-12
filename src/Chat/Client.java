@@ -16,7 +16,7 @@ public class Client {
     private int onlineCount = 1;
     private Frame frame;
 
-    public Client(JTextArea field, String username, Frame frame, String host) {
+    public Client(JTextArea field, String username, Frame frame, String host, JFrame projectInterface, JLabel status) {
         try {
             System.out.println(host);
             socket = new Socket(host, 5000);
@@ -30,7 +30,11 @@ public class Client {
                 try {
                     String responseString;
                     while ((responseString = input.readLine()) != null) {
-                            field.append("\n" + responseString);
+                        if (responseString.contains("#ER86Yt42//EmilutCuParulCretBagaPulaInCotet")) {
+                            this.close();
+                            frame.dispose();
+                            if (projectInterface.getState() == Frame.ICONIFIED) projectInterface.setState(Frame.NORMAL);
+                        } else field.append("\n\n" + responseString);
                     }
                 } catch (IOException e) {
                     System.out.println("Client Error: " + e.getMessage());

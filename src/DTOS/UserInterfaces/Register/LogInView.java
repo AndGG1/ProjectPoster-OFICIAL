@@ -260,7 +260,6 @@ public class LogInView {
                 Runnable myRUnnable = () -> {
                     boolean validUsername = Startup_Log.searchUser(nameField.getText());
                     boolean validPass = validUsername ? Startup_Log.checkUser(nameField.getText(), String.valueOf(passField.getPassword())) : false;
-                    System.out.println(validPass);
                     
                     if (!validUsername && !validPass) {
                         attach_Name.setBackground(Color.RED);
@@ -276,8 +275,6 @@ public class LogInView {
                     frame.dispose();
                     
                     User user = Startup_Log.getUser();
-                    System.out.println(user + "-");
-                    System.out.println(user.getImg());
                     new WelcomePage(user.getImg() == null ? "https://avatars.githubusercontent.com/u/154756433?v=4&size=64" : user.getImg(), user.getUsername(), user.getDescription());
                 };
                 Thread newThread = new Thread(myRUnnable);

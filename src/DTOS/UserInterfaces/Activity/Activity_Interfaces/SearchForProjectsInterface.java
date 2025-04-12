@@ -232,6 +232,7 @@ public class SearchForProjectsInterface {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (e.getButton() != 1) return;
+                if (!descriptionArea.isEnabled()) return;
                 
                 try {
                     int line = descriptionArea.getLineOfOffset(descriptionArea.getCaretPosition());
@@ -240,9 +241,13 @@ public class SearchForProjectsInterface {
                     String name = projectLine.split(", ")[0].split("Project")[1]; name = name.substring(1);
                     String description = projectLine.split(", ")[2];
                     String link = projectLine.split(", ")[1];
-                    new ProjectInterface(name, "unknown", description.substring(0, description.length()-1), link);
+                    new ProjectInterface(name, "unknown", description.substring(0, description.length()-1), link, descriptionArea);
+                    
+                    descriptionArea.setEnabled(false);
                 } catch (BadLocationException e2) {
-                    e2.printStackTrace();
+                    //ignore
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
                 }
             }
         });
@@ -282,7 +287,6 @@ public class SearchForProjectsInterface {
                         row.add(percentage);
                         projects.add(row);
                     }
-                    System.out.println(percentage);
                 }
                 
                 if (projects.isEmpty() || searchTextField.getText().isEmpty()) {
@@ -307,8 +311,7 @@ public class SearchForProjectsInterface {
                 
                 projects.clear();
             } catch (SQLException e) {
-                
-                e.printStackTrace();
+                JOptionPane.showMessageDialog(frame, "Search failed!", "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
     }

@@ -1,9 +1,7 @@
 package Database.Functionality;
 
-import DTOS.UserInterfaces.Activity.Project;
 import jakarta.persistence.*;
 
-import java.util.List;
 import java.util.StringJoiner;
 
 @Entity

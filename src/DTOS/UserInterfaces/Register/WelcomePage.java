@@ -39,6 +39,8 @@ public class WelcomePage {
         try {
             props.load(Files.newInputStream(Path.of("storefront.properties"), StandardOpenOption.READ));
         } catch (IOException e) {
+            JOptionPane.showMessageDialog(frame, "Failed to load the Welcome Page!",
+                    "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
         
@@ -75,7 +77,10 @@ public class WelcomePage {
             img2 = img2.getScaledInstance(60, 60, Image.SCALE_SMOOTH);
             infoButton.setIcon(new ImageIcon(img2));
         } catch (IOException e) {
-            e.printStackTrace();
+            frame.dispose();
+            JOptionPane.showMessageDialog(frame, "Failed to load the Welcome Page!",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+            return;
         }
         infoButton.setBounds(1080, 465, 64, 64); // Adjust the size and position
         infoButton.setContentAreaFilled(false);
@@ -204,7 +209,6 @@ public class WelcomePage {
                         } catch (SQLException exc) {
                             statusLabel.setText(fail);
                             statusLabel.setForeground(Color.RED);
-                            exc.printStackTrace();
                         }
                         
                         try {
