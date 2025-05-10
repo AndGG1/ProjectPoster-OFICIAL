@@ -55,6 +55,7 @@ public class ChatDatabase_Initialization {
                     ip_address TEXT NOT NULL,
                     port INT NOT NULL,
                     users TEXT NOT NULL,
+                    onlineCount INT NOT NULL,
                     PRIMARY KEY (id)
                     )
                     """;

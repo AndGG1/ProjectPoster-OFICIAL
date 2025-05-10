@@ -1,7 +1,7 @@
 package DTOS.UserInterfaces.Activity.Activity_Interfaces;
 
+import Chat.ChatServer;
 import Chat.Chat_Interface;
-import Chat.SimpleServerChannel;
 import com.mysql.cj.jdbc.MysqlDataSource;
 
 import javax.swing.*;
@@ -25,9 +25,9 @@ import java.util.ResourceBundle;
 
 public class ProjectInterface {
     static Properties props = new Properties();
-    SimpleServerChannel serverChannel = new SimpleServerChannel();
+    ChatServer serverChannel = new ChatServer();
     
-    public ProjectInterface(String projectName, String ownerName, String description, String link, JTextArea area) throws IOException {
+    public ProjectInterface(String projectName, String ownerName, String description, String link, JTextArea area, String username) throws IOException {
         ResourceBundle rb = null;
         if (Locale.getDefault().toString().equals("ro_RO") || Locale.getDefault().toString().equals("de_DE")) {
             rb = ResourceBundle.getBundle("BasicText", Locale.getDefault());
@@ -134,8 +134,8 @@ public class ProjectInterface {
         joinChatButton.addActionListener(e -> {
             joinChatButton.setEnabled(false);
             
-            String selectQuery = "SELECT id, name, ip_address, port, users FROM servers.locations WHERE name = ?";
-            String addQuery = "INSERT INTO servers.locations (name, ip_address, port, users) VALUES (?, ?, ?, ?)";
+            String selectQuery = "SELECT id, name, ip_address, port, users, onlineCount FROM servers.locations WHERE name = ?";
+            String addQuery = "INSERT INTO servers.locations (name, ip_address, port, users, onlineCount) VALUES (?, ?, ?, ?, ?)";
             frame.setState(Frame.ICONIFIED);
             try (Connection connection = ds.getConnection();
                  PreparedStatement statement = connection.prepareStatement(selectQuery);
@@ -150,6 +150,7 @@ public class ProjectInterface {
                     ps.setString(2, IP_ADDRESS);
                     ps.setInt(3, 5000);
                     ps.setString(4, "user");
+                    ps.setInt(5, 1);
                     ps.addBatch();
                     
                     ps.executeBatch();
@@ -158,7 +159,8 @@ public class ProjectInterface {
                     ps.setString(1, projectName);
                     ps.setString(2, String.valueOf(resultSet.getString(3)));
                     ps.setInt(3, resultSet.getInt(4));
-                    ps.setString(4, resultSet.getString(5) + ", " + "user");
+                    ps.setString(4, resultSet.getString(5) + ", " + username);
+                    ps.setInt(5, resultSet.getInt(6)+1);
                     ps.addBatch();
                     ps.executeBatch();
                     ps.clearBatch();
@@ -187,6 +189,6 @@ public class ProjectInterface {
         new ProjectInterface("Amazing Project", "Andrei",
                 "This is a detailed and captivating project description that will now be displayed over multiple lines. "
                         + "The description can go on and on to test how it dynamically adjusts in the label.",
-                "https://example.com", new JTextArea());
+                "https://example.com", new JTextArea(), "Andrei" + new Random().nextInt(1, 1000));
     }
 }

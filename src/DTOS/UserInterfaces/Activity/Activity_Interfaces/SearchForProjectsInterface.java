@@ -241,7 +241,7 @@ public class SearchForProjectsInterface {
                     String name = projectLine.split(", ")[0].split("Project")[1]; name = name.substring(1);
                     String description = projectLine.split(", ")[2];
                     String link = projectLine.split(", ")[1];
-                    new ProjectInterface(name, "unknown", description.substring(0, description.length()-1), link, descriptionArea);
+                    new ProjectInterface(name, "unknown", description.substring(0, description.length()-1), link, descriptionArea, name);
                     
                     descriptionArea.setEnabled(false);
                 } catch (BadLocationException e2) {

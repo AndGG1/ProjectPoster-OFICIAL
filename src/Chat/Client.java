@@ -13,10 +13,10 @@ public class Client {
     private PrintWriter output;
     private BufferedReader input;
     private String username;
-    private int onlineCount = 1;
     private Frame frame;
+    private String ENCODED_STRING = "#ER86Yt42//EmilutCuParulCretBagaPulaInCotet";
 
-    public Client(JTextArea field, String username, Frame frame, String host, JFrame projectInterface, JLabel status) {
+    public Client(JTextArea field, String username, Frame frame, String host, JFrame projectInterface) {
         try {
             System.out.println(host);
             socket = new Socket(host, 5000);
@@ -30,7 +30,7 @@ public class Client {
                 try {
                     String responseString;
                     while ((responseString = input.readLine()) != null) {
-                        if (responseString.contains("#ER86Yt42//EmilutCuParulCretBagaPulaInCotet")) {
+                        if (responseString.contains(ENCODED_STRING)) {
                             this.close();
                             frame.dispose();
                             if (projectInterface.getState() == Frame.ICONIFIED) projectInterface.setState(Frame.NORMAL);
@@ -52,10 +52,6 @@ public class Client {
         output.println("Message from " + username + (isOwner ? " (Admin)" : " (Visitor)") + ": " + s);
     }
     
-    public Socket getSocket() {
-        return socket;
-    }
-    
     public void close() {
         try {
             output.println(username + " disconnecting...");
@@ -66,13 +62,5 @@ public class Client {
         } catch (IOException e) {
             System.out.println("Client Error while closing: " + e.getMessage());
         }
-    }
-    
-    public int getOnlineCount() {
-        return onlineCount;
-    }
-    
-    public void setOnlineCount(int onlineCount) {
-        this.onlineCount = onlineCount;
     }
 }

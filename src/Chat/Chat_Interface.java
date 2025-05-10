@@ -22,7 +22,7 @@ import java.util.function.Consumer;
 public class Chat_Interface {
     private final JFrame frame;
     
-    public Chat_Interface(SimpleServerChannel serverChannel, boolean ownerOfServer, String IPAddress, String projectName, JFrame projectInterface, JButton joinButton) {
+    public Chat_Interface(ChatServer serverChannel, boolean ownerOfServer, String IPAddress, String projectName, JFrame projectInterface, JButton joinButton) {
         if (ownerOfServer) {
             new Thread(serverChannel::start).start();
         }
@@ -114,7 +114,7 @@ public class Chat_Interface {
         statusButton.setOpaque(true);
         attach1.add(statusButton);
         
-        Client client = new Client(descriptionArea, "Bot" + new Random().nextInt(1, 10), frame, IPAddress, projectInterface, statusButton);
+        Client client = new Client(descriptionArea, "Bot" + new Random().nextInt(1, 10), frame, IPAddress, projectInterface);
         
         attach1.setComponentZOrder(scrollPane, 0);
         attach1.setComponentZOrder(nameField, 0);
@@ -133,7 +133,7 @@ public class Chat_Interface {
                 try {
                     if (iconLabel.isEnabled()) {
                         client.sendMessageToServer(nameField.getText(), ownerOfServer);
-                        statusButton.setText(serverChannel.getClientChannels().size()+"");
+                        //statusButton.setText(serverChannel.getClientChannels().size()+"");
                         nameField.setText("");
                     }
                 } catch (IOException ex) {
@@ -177,17 +177,17 @@ public class Chat_Interface {
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
+                
+                try (Connection connection = ds.getConnection();
+                     PreparedStatement preparedStatement = connection.prepareStatement(removeQuery)) {
+                    preparedStatement.setString(1, projectName);
+                    preparedStatement.execute();
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
             } else {
                 frame.dispose();
                 client.close();
-            }
-            
-            try (Connection connection = ds.getConnection();
-                 PreparedStatement preparedStatement = connection.prepareStatement(removeQuery)) {
-                preparedStatement.setString(1, projectName);
-                preparedStatement.execute();
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
             }
         };
         
@@ -249,7 +249,7 @@ public class Chat_Interface {
             Runnable runnable = () -> {
                 while (true) {
                     try {
-                        TimeUnit.SECONDS.sleep(3);
+                        TimeUnit.SECONDS.sleep(2);
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
