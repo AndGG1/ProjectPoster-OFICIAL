@@ -13,6 +13,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Properties;
 import java.util.Random;
@@ -22,7 +23,7 @@ import java.util.function.Consumer;
 public class Chat_Interface {
     private final JFrame frame;
     
-    public Chat_Interface(ChatServer serverChannel, boolean ownerOfServer, String IPAddress, String projectName, JFrame projectInterface, JButton joinButton) {
+    public Chat_Interface(ChatServer serverChannel, boolean ownerOfServer, String IPAddress, String projectName, JFrame projectInterface, JButton joinButton, String username) {
         if (ownerOfServer) {
             new Thread(serverChannel::start).start();
         }
@@ -114,7 +115,7 @@ public class Chat_Interface {
         statusButton.setOpaque(true);
         attach1.add(statusButton);
         
-        Client client = new Client(descriptionArea, "Bot" + new Random().nextInt(1, 10), frame, IPAddress, projectInterface);
+        Client client = new Client(descriptionArea, username, frame, IPAddress, projectInterface);
         
         attach1.setComponentZOrder(scrollPane, 0);
         attach1.setComponentZOrder(nameField, 0);
@@ -186,9 +187,22 @@ public class Chat_Interface {
                     throw new RuntimeException(e);
                 }
             } else {
-                frame.dispose();
-                client.close();
+                
+                String updateQuery = "UPDATE servers.locations SET onlineCount = onlineCount - 1 WHERE name = ? AND onlineCount > 0";
+                
+                try (Connection connection = ds.getConnection();
+                     PreparedStatement psUpdate = connection.prepareStatement(updateQuery)) {
+                     
+                    psUpdate.setString(1, projectName);
+                    psUpdate.executeUpdate();
+                    
+                } catch (SQLException ex) {
+                    JOptionPane.showMessageDialog(frame, "An error occurred while updating the online count!", "Error", JOptionPane.ERROR_MESSAGE);
+                    throw new RuntimeException(ex);
+                }
             }
+            client.close();
+            frame.dispose();
         };
         
         exitButton.addMouseListener(new MouseAdapter() {
@@ -196,11 +210,10 @@ public class Chat_Interface {
             public void mouseClicked(MouseEvent e) {
                 if (e.getButton() != 1) return;
                 
+                // Ensure `client` is closed
                 closeClient.accept(client);
             }
         });
-        
-        
         
         
         frame.addWindowListener(new WindowAdapter() {
@@ -246,16 +259,35 @@ public class Chat_Interface {
         });
         
         
-            Runnable runnable = () -> {
-                while (true) {
-                    try {
-                        TimeUnit.SECONDS.sleep(2);
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
+        Runnable runnable = () -> {
+            while (true) {
+                try {
+                    TimeUnit.SECONDS.sleep(2);
+                    
+                    String selectQuery = "SELECT onlineCount FROM servers.locations WHERE name = ?";
+                    
+                    try (Connection connection = ds.getConnection();
+                         PreparedStatement psSelect = connection.prepareStatement(selectQuery)) {
+                        
+                        psSelect.setString(1, projectName);
+                        ResultSet resultSet = psSelect.executeQuery();
+                        
+                        if (resultSet.next()) {
+                            int onlineCount = resultSet.getInt(1);
+                            statusButton.setText(onlineCount+"");
+                        }
+                        
+                    } catch (SQLException ex) {
+                        System.err.println("Error fetching onlineCount: " + ex.getMessage());
                     }
+                    
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
                 }
-            };
-            new Thread(runnable).start();
+            }
+        };
+        
+        new Thread(runnable).start();
         
         frame.addWindowListener(new WindowAdapter() {
             @Override

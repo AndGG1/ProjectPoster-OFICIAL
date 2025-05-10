@@ -24,27 +24,26 @@ public class ChatServer {
             ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
             
             while (true) {
-                selector.select(); // Wait for events to happen.
-                Iterator<SelectionKey> keyIterator = selector.keys().iterator();
+                selector.select(5000); // 5-second timeout to prevent indefinite blocking
+                Iterator<SelectionKey> keyIterator = selector.selectedKeys().iterator(); // Fix: Use selectedKeys()
                 
                 while (keyIterator.hasNext()) {
                     SelectionKey key = keyIterator.next();
-                    keyIterator.remove();
+                    keyIterator.remove(); // Remove processed key
                     
                     if (key.isAcceptable()) {
-                        //Accept new client connection.
+                        // Accept new client connection
                         SocketChannel clientChannel = serverChannel.accept();
                         clientChannel.configureBlocking(false);
                         clientChannel.register(selector, SelectionKey.OP_READ);
                         System.out.printf("Client %s connected%n", clientChannel.socket().getRemoteSocketAddress());
                     } else if (key.isReadable()) {
-                        //Read data from a client
+                        // Read data from a client
                         SocketChannel clientChannel = (SocketChannel) key.channel();
                         byteBuffer.clear();
                         
                         int bytesRead = clientChannel.read(byteBuffer);
-                        //Client disconnected.
-                        if (bytesRead == -1) {
+                        if (bytesRead == -1) { // Client disconnected
                             System.out.printf("Client %s disconnected%n", clientChannel.socket().getRemoteSocketAddress());
                             clientChannel.close();
                             key.cancel();
@@ -55,33 +54,34 @@ public class ChatServer {
                             String message = new String(data, StandardCharsets.UTF_8);
                             System.out.printf("Received message: %s%n", message);
                             
-                            //Broadcast the message to all clients, including the sender.
+                            // Broadcast the message to all clients
                             broadcastMessage(selector, message);
                         }
                     }
                 }
             }
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace(); // Log the exception
         }
     }
     
     private void broadcastMessage(Selector selector, String message) {
         ByteBuffer buffer = ByteBuffer.wrap(message.getBytes(StandardCharsets.UTF_8));
         for (SelectionKey key : selector.keys()) {
-            SocketChannel clientChannel = (SocketChannel) key.channel();
-            
-            try {
-                buffer.rewind();
-                clientChannel.write(buffer);
-            } catch (IOException e) {
-                System.out.printf("Failed to send message to client %s%n", clientChannel.socket().getRemoteSocketAddress());
+            if (key.isValid() && key.channel() instanceof SocketChannel) { // Fix: Check if key is valid
+                SocketChannel clientChannel = (SocketChannel) key.channel();
                 try {
-                    clientChannel.close();
-                } catch (IOException ignored) {
-                    //do nothing.
+                    buffer.rewind();
+                    clientChannel.write(buffer);
+                } catch (IOException e) {
+                    System.out.printf("Failed to send message to client %s%n", clientChannel.socket().getRemoteSocketAddress());
+                    try {
+                        clientChannel.close();
+                    } catch (IOException ignored) {
+                        // Do nothing
+                    }
+                    key.cancel();
                 }
-                key.cancel();
             }
         }
     }

@@ -136,40 +136,42 @@ public class ProjectInterface {
             
             String selectQuery = "SELECT id, name, ip_address, port, users, onlineCount FROM servers.locations WHERE name = ?";
             String addQuery = "INSERT INTO servers.locations (name, ip_address, port, users, onlineCount) VALUES (?, ?, ?, ?, ?)";
+            String updateQuery = "UPDATE servers.locations SET ip_address = ?, port = ?, users = ?, onlineCount = ? WHERE name = ?";
             frame.setState(Frame.ICONIFIED);
             try (Connection connection = ds.getConnection();
                  PreparedStatement statement = connection.prepareStatement(selectQuery);
-                 PreparedStatement ps = connection.prepareStatement(addQuery)) {
-                 statement.setString(1, projectName);
-                 ResultSet resultSet = statement.executeQuery();
+                 PreparedStatement psInsert = connection.prepareStatement(addQuery);
+                 PreparedStatement psUpdate = connection.prepareStatement(updateQuery)) {
+                
+                statement.setString(1, projectName);
+                ResultSet resultSet = statement.executeQuery();
                 
                 if (!resultSet.next()) {
                     String IP_ADDRESS = InetAddress.getLocalHost().getHostAddress();
-                    new Chat_Interface(serverChannel, true, IP_ADDRESS, projectName, frame, joinChatButton);
-                    ps.setString(1, projectName);
-                    ps.setString(2, IP_ADDRESS);
-                    ps.setInt(3, 5000);
-                    ps.setString(4, "user");
-                    ps.setInt(5, 1);
-                    ps.addBatch();
-                    
-                    ps.executeBatch();
-                    ps.clearBatch();
-                } else {
-                    ps.setString(1, projectName);
-                    ps.setString(2, String.valueOf(resultSet.getString(3)));
-                    ps.setInt(3, resultSet.getInt(4));
-                    ps.setString(4, resultSet.getString(5) + ", " + username);
-                    ps.setInt(5, resultSet.getInt(6)+1);
-                    ps.addBatch();
-                    ps.executeBatch();
-                    ps.clearBatch();
-                    new Chat_Interface(serverChannel, false, resultSet.getString(3), projectName, frame, joinChatButton);
+                    new Chat_Interface(serverChannel, true, IP_ADDRESS, projectName, frame, joinChatButton, username);
+                    psInsert.setString(1, projectName);
+                    psInsert.setString(2, IP_ADDRESS);
+                    psInsert.setInt(3, 5000);
+                    psInsert.setString(4, username);
+                    psInsert.setInt(5, 1);
+                    psInsert.executeUpdate();
+                } else if (!resultSet.getString(5).contains(username)) {
+                    psUpdate.setString(1, resultSet.getString(3));
+                    psUpdate.setInt(2, resultSet.getInt(4));
+                    psUpdate.setString(3, resultSet.getString(5) + ", " + username);
+                    psUpdate.setInt(4, resultSet.getInt(6) + 1);
+                    psUpdate.setString(5, projectName);
+                    psUpdate.executeUpdate();
+                    new Chat_Interface(serverChannel, false, resultSet.getString(3), projectName, frame, joinChatButton, username);
+                } else if (resultSet.getString(5).contains(username)) {
+                    frame.setState(Frame.NORMAL);
+                    joinChatButton.setEnabled(true);
                 }
             } catch (SQLException | UnknownHostException ex) {
                 JOptionPane.showMessageDialog(frame, "An error occurred while joining the chat!", "Error", JOptionPane.ERROR_MESSAGE);
                 throw new RuntimeException(ex);
             }
+
         });
         frame.add(joinChatButton);
         

@@ -21,6 +21,7 @@ public class GPT2TrainerTester {
     
     private static final String API_URL = "https://api-inference.huggingface.co/models/openai-community/gpt2"; // Your model name here
     
+    //you have to do manual fine-tuning
     public static void main(String[] args) {
         String trainingData = "";
         
@@ -31,6 +32,7 @@ public class GPT2TrainerTester {
         }
     }
     
+    //the actual fine-tune method
     public static void fineTuneModel(String trainingData, String API_KEY) throws IOException {
         CloseableHttpClient httpClient = HttpClients.createDefault();
         HttpPost httpPost = new HttpPost(API_URL);
@@ -69,6 +71,7 @@ public class GPT2TrainerTester {
         return bf.lines().collect(Collectors.joining());
     }
     
+    //teaches the ai
     public static void learnTheAi(List<String> linesToLearn, Executor exec, String api) {
         //learns from the given fetched data
         linesToLearn.forEach(line -> {
@@ -82,6 +85,7 @@ public class GPT2TrainerTester {
         });
     }
     
+    //chooses a free AI Model out of the 5 GPT-2 Models.
     public static boolean chooseFreeAi(String apiKey) throws IOException {
         URL url = new URL("https://api-inference.huggingface.co/models/openai-community/gpt2");
         
