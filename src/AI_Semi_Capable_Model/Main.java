@@ -256,6 +256,30 @@ public class Main {
             }
         }
     }
+
+    public static void getAPIS(List<String> apis) {
+        try {
+            apis = Files.readAllLines(Path.of("API_KEYS"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void teachAIModelsIfNotUsed(List<String> apis) {
+        if (apis == null) return;
+
+        for (String api : apis) {
+            try {
+                if (!GPT2TrainerTester.chooseFreeAi(api)) return;
+            } catch (IOException ex) {
+                //do nothing
+            }
+        }
+
+        for (String api : apis) {
+            GPT2TrainerTester.learnTheAi(Main.getLinesToLearn(), Main.getExec(), api);
+        }
+    }
     
     public static Executor getExec() {
         return exec;
