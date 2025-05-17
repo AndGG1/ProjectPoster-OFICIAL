@@ -16,14 +16,14 @@ import java.util.regex.Pattern;
 
 
 //Really Specific Order!
-//DO NOT ALTER!
+//DO NOT MODIFY!
 
-// 0 = Open Password Eye | 1 = Closed Password Eye | 2 = info button
+// 0 = Open Password Eye | 1 = Closed Password Eye | 2 = Info Button
 public final class EXTRA_Links {
     
-    private static ArrayList<ImageIcon> icons = new ArrayList<>();
+    private static final ArrayList<ImageIcon> icons = new ArrayList<>();
     
-    public static void doIt(String s) {
+    public static void getLink(String s) {
         Image img = null;
         try {
             img = ImageIO.read(new URL(s));
@@ -36,17 +36,17 @@ public final class EXTRA_Links {
     }
     
     public static ImageIcon getPassOpenEye() {
-        //doIt("https://cdn-icons-png.flaticon.com/128/709/709724.png");
+        //getLink("https://cdn-icons-png.flaticon.com/128/709/709724.png");
         return icons.get(0);
     }
     
     public static ImageIcon getPassClosedEye() {
-        //doIt("https://cdn-icons-png.flaticon.com/128/9055/9055153.png");
+        //getLink("https://cdn-icons-png.flaticon.com/128/9055/9055153.png");
         return icons.get(1);
     }
     
     public static ImageIcon getInfoButton() {
-        //doIt("https://www.iconsdb.com/icons/preview/blue/info-xxl.png");
+        //getLink("https://www.iconsdb.com/icons/preview/blue/info-xxl.png");
         return icons.get(2);
     }
     

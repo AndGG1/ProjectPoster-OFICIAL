@@ -11,9 +11,9 @@ public class Test {
     public static void main(String[] args) throws IOException, SQLException, InterruptedException {
         
         try {
-            EXTRA_Links.doIt("https://cdn-icons-png.flaticon.com/128/709/709724.png");
-            EXTRA_Links.doIt("https://cdn-icons-png.flaticon.com/128/9055/9055153.png");
-            EXTRA_Links.doIt("https://www.iconsdb.com/icons/preview/blue/info-xxl.png");
+            EXTRA_Links.getLink("https://cdn-icons-png.flaticon.com/128/709/709724.png");
+            EXTRA_Links.getLink("https://cdn-icons-png.flaticon.com/128/9055/9055153.png");
+            EXTRA_Links.getLink("https://www.iconsdb.com/icons/preview/blue/info-xxl.png");
             
             Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
             if (dimension.width >= 500 && dimension.height >= 500) {
