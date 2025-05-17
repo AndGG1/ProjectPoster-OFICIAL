@@ -1,7 +1,6 @@
 package Chat;
 
 import DTOS.EXTRA_Links;
-import Database.Functionality.User;
 import com.mysql.cj.jdbc.MysqlDataSource;
 
 import javax.swing.*;
