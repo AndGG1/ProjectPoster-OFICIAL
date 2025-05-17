@@ -33,30 +33,10 @@ public class ChatServer {
                     
                     if (key.isAcceptable()) {
                         // Accept new client connection
-                        SocketChannel clientChannel = serverChannel.accept();
-                        clientChannel.configureBlocking(false);
-                        clientChannel.register(selector, SelectionKey.OP_READ);
-                        System.out.printf("Client %s connected%n", clientChannel.socket().getRemoteSocketAddress());
+                        SelectorTasks.acceptUser(selector, serverChannel);
                     } else if (key.isReadable()) {
                         // Read data from a client
-                        SocketChannel clientChannel = (SocketChannel) key.channel();
-                        byteBuffer.clear();
-                        
-                        int bytesRead = clientChannel.read(byteBuffer);
-                        if (bytesRead == -1) { // Client disconnected
-                            System.out.printf("Client %s disconnected%n", clientChannel.socket().getRemoteSocketAddress());
-                            clientChannel.close();
-                            key.cancel();
-                        } else if (bytesRead > 0) {
-                            byteBuffer.flip();
-                            byte[] data = new byte[byteBuffer.remaining()];
-                            byteBuffer.get(data);
-                            String message = new String(data, StandardCharsets.UTF_8);
-                            System.out.printf("Received message: %s%n", message);
-                            
-                            // Broadcast the message to all clients
-                            broadcastMessage(selector, message);
-                        }
+                        SelectorTasks.readMessage(selector, byteBuffer, key);
                     }
                 }
             }
@@ -65,7 +45,7 @@ public class ChatServer {
         }
     }
     
-    private void broadcastMessage(Selector selector, String message) {
+    private static void broadcastMessage(Selector selector, String message) {
         ByteBuffer buffer = ByteBuffer.wrap(message.getBytes(StandardCharsets.UTF_8));
         for (SelectionKey key : selector.keys()) {
             if (key.isValid() && key.channel() instanceof SocketChannel) { // Fix: Check if key is valid
@@ -82,6 +62,36 @@ public class ChatServer {
                     }
                     key.cancel();
                 }
+            }
+        }
+    }
+
+    protected static class SelectorTasks {
+        public static void acceptUser(Selector selector, ServerSocketChannel serverChannel) throws IOException {
+            SocketChannel clientChannel = serverChannel.accept();
+            clientChannel.configureBlocking(false);
+            clientChannel.register(selector, SelectionKey.OP_READ);
+            System.out.printf("Client %s connected%n", clientChannel.socket().getRemoteSocketAddress());
+        }
+
+        public static void readMessage(Selector selector, ByteBuffer byteBuffer, SelectionKey key) throws IOException {
+            SocketChannel clientChannel = (SocketChannel) key.channel();
+            byteBuffer.clear();
+
+            int bytesRead = clientChannel.read(byteBuffer);
+            if (bytesRead == -1) { // Client disconnected
+                System.out.printf("Client %s disconnected%n", clientChannel.socket().getRemoteSocketAddress());
+                clientChannel.close();
+                key.cancel();
+            } else if (bytesRead > 0) {
+                byteBuffer.flip();
+                byte[] data = new byte[byteBuffer.remaining()];
+                byteBuffer.get(data);
+                String message = new String(data, StandardCharsets.UTF_8);
+                System.out.printf("Received message: %s%n", message);
+
+                // Broadcast the message to all clients
+                broadcastMessage(selector, message);
             }
         }
     }

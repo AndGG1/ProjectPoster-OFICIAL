@@ -244,7 +244,7 @@ public class AI_Interface {
         }
     }
     
-    public static class RandomQuestionGenerator {
+    protected static class RandomQuestionGenerator {
         public static String getRandomQuestion() {
             return switch (new Random().nextInt(1, 5)) {
                 case 1 -> "Any new Updates?";
@@ -256,7 +256,7 @@ public class AI_Interface {
         }
     }
 
-    public static class MultipleTasksHandler {
+    protected static class MultipleTasksHandler {
         public static ArrayBlockingQueue<Thread> runnables = new ArrayBlockingQueue<>(10);
         public static ExecutorService executorService = Executors.newFixedThreadPool(5);
         public static Lock mainLock = new ReentrantLock();

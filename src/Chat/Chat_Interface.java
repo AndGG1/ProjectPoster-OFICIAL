@@ -1,6 +1,7 @@
 package Chat;
 
 import DTOS.EXTRA_Links;
+import Database.Functionality.User;
 import com.mysql.cj.jdbc.MysqlDataSource;
 
 import javax.swing.*;
@@ -8,22 +9,20 @@ import javax.swing.text.BadLocationException;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Properties;
-import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 public class Chat_Interface {
     private final JFrame frame;
+    private final String ENCODED_MESSAGE = "#ER86Yt42//EmilutCuParulCretBagaPulaInCotet";
     
-    public Chat_Interface(ChatServer serverChannel, boolean ownerOfServer, String IPAddress, String projectName, JFrame projectInterface, JButton joinButton, String username) {
+    public Chat_Interface(ChatServer serverChannel, boolean ownerOfServer, String IPAddress,
+                          String projectName, JFrame projectInterface, JButton joinButton, String username) {
         if (ownerOfServer) {
             new Thread(serverChannel::start).start();
         }
@@ -49,7 +48,8 @@ public class Chat_Interface {
         attach2.setOpaque(true);
         attach2.setBounds(900, 0, 50, 900);
         attach1.add(attach2);
-        
+
+
         // Input Provider
         JTextField nameField = new JTextField();
         nameField.setBackground(Color.GRAY);
@@ -60,7 +60,8 @@ public class Chat_Interface {
         nameField.setText("text...");
         nameField.setBounds(-2, 892, 902, 50);  // Set bounds for nameField
         attach1.add(nameField);
-        
+
+
         // Input Sender
         JLabel iconLabel = new JLabel();
         iconLabel.setBackground(Color.GRAY);
@@ -71,7 +72,8 @@ public class Chat_Interface {
         iconLabel.setOpaque(true);
         iconLabel.setBounds(900, 890, 50, 50);
         attach1.add(iconLabel);
-        
+
+
         // Description Text Area
         JTextArea descriptionArea = new JTextArea();
         descriptionArea.setText("What are you waiting for? Start the conversation!");
@@ -83,13 +85,17 @@ public class Chat_Interface {
         descriptionArea.setLineWrap(true);
         descriptionArea.setWrapStyleWord(true);
         descriptionArea.setEditable(false);
-        
+
+
+        //Scroll pane
         JScrollPane scrollPane = new JScrollPane(descriptionArea);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         scrollPane.setBounds(0, 0, 900, 900);
         attach1.add(scrollPane);
-        
+
+
+        //clear button
         JButton clearButton = new JButton("X");
         clearButton.setBounds(900, 20, 50, 50);
         clearButton.setBackground(Color.RED);
@@ -98,7 +104,9 @@ public class Chat_Interface {
         clearButton.setBorderPainted(false);
         clearButton.setFocusPainted(false);
         attach1.add(clearButton);
-        
+
+
+        //exit button
         JButton exitButton = new JButton("EXIT");
         exitButton.setBounds(880, 80, 90, 35);
         exitButton.setBackground(Color.RED);
@@ -107,16 +115,17 @@ public class Chat_Interface {
         exitButton.setBorderPainted(false);
         exitButton.setFocusPainted(false);
         attach1.add(exitButton);
-        
+
+
+        //online count displayer
         JLabel statusButton = new JLabel("-");
         statusButton.setBounds(900, 140, 50, 35);
         statusButton.setBackground(Color.GREEN);
         statusButton.setFont(new Font("Arial", Font.BOLD, 15));
         statusButton.setOpaque(true);
         attach1.add(statusButton);
-        
-        Client client = new Client(descriptionArea, username, frame, IPAddress, projectInterface);
-        
+
+        //configuring interface
         attach1.setComponentZOrder(scrollPane, 0);
         attach1.setComponentZOrder(nameField, 0);
         attach1.setComponentZOrder(clearButton, 0);
@@ -124,7 +133,12 @@ public class Chat_Interface {
         attach1.setComponentZOrder(statusButton, 0);
         attach1.revalidate();
         attach1.repaint();
-        
+
+        //Joined user.
+        Client client = new Client(descriptionArea, username, frame, IPAddress, projectInterface);
+
+
+        //Places a countdown on sending messages so that the server doesn't crack.
         iconLabel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -134,7 +148,6 @@ public class Chat_Interface {
                 try {
                     if (iconLabel.isEnabled()) {
                         client.sendMessageToServer(nameField.getText(), ownerOfServer);
-                        //statusButton.setText(serverChannel.getClientChannels().size()+"");
                         nameField.setText("");
                     }
                 } catch (IOException ex) {
@@ -154,75 +167,41 @@ public class Chat_Interface {
                 }
             }
         });
-        
-        
-        
-        Properties props = new Properties();
-        try {
-            props.load(Files.newInputStream(Path.of("storefront.properties"), StandardOpenOption.READ));
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(frame, "An error occurred", "Error", JOptionPane.ERROR_MESSAGE);
-        }
-        MysqlDataSource ds = new MysqlDataSource();
-        ds.setServerName("localhost");
-        ds.setPortNumber(3306);
-        ds.setUser(props.getProperty("user"));
-        ds.setPassword(props.getProperty("pass"));
-        String removeQuery = "DELETE FROM servers.locations WHERE name = ?";
+
+
+        //This closes a client and based on his status on the chat, it does additional things.
         Consumer<Client> closeClient = c -> {
             projectInterface.setState(Frame.NORMAL);
             
             if (ownerOfServer) {
-                try {
-                    client.sendMessageToServer("#ER86Yt42//EmilutCuParulCretBagaPulaInCotet", true);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-                
-                try (Connection connection = ds.getConnection();
-                     PreparedStatement preparedStatement = connection.prepareStatement(removeQuery)) {
-                    preparedStatement.setString(1, projectName);
-                    preparedStatement.execute();
-                } catch (SQLException e) {
-                    throw new RuntimeException(e);
-                }
+                UserTasks.closeAdmin(client, ENCODED_MESSAGE, projectName);
             } else {
-                
-                String updateQuery = "UPDATE servers.locations SET onlineCount = onlineCount - 1 WHERE name = ? AND onlineCount > 0";
-                
-                try (Connection connection = ds.getConnection();
-                     PreparedStatement psUpdate = connection.prepareStatement(updateQuery)) {
-                     
-                    psUpdate.setString(1, projectName);
-                    psUpdate.executeUpdate();
-                    
-                } catch (SQLException ex) {
-                    JOptionPane.showMessageDialog(frame, "An error occurred while updating the online count!", "Error", JOptionPane.ERROR_MESSAGE);
-                    throw new RuntimeException(ex);
-                }
+                UserTasks.closeVisitor(frame, projectName);
             }
             client.close();
             frame.dispose();
         };
-        
+
+
+        //we start the closing process of client(if pressing exit)
         exitButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (e.getButton() != 1) return;
-                
-                // Ensure `client` is closed
-                closeClient.accept(client);
+              if (e.getButton() != 1) return;
+              closeClient.accept(client);
             }
         });
-        
-        
+
+        //we start the closing process of client(if exiting directly)
         frame.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
                 closeClient.accept(client);
             }
         });
-        
+
+
+        //If someone posts a link, the users can access it by clicking on it directly from the chat screen
         descriptionArea.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -239,7 +218,8 @@ public class Chat_Interface {
                 }
             }
         });
-        
+
+
         nameField.addFocusListener(new FocusAdapter() {
             @Override
             public void focusLost(FocusEvent e) {
@@ -258,35 +238,12 @@ public class Chat_Interface {
             descriptionArea.setText("");
         });
         
-        
+        //online displayer
         Runnable runnable = () -> {
             while (true) {
-                try {
-                    TimeUnit.SECONDS.sleep(2);
-                    
-                    String selectQuery = "SELECT onlineCount FROM servers.locations WHERE name = ?";
-                    
-                    try (Connection connection = ds.getConnection();
-                         PreparedStatement psSelect = connection.prepareStatement(selectQuery)) {
-                        
-                        psSelect.setString(1, projectName);
-                        ResultSet resultSet = psSelect.executeQuery();
-                        
-                        if (resultSet.next()) {
-                            int onlineCount = resultSet.getInt(1);
-                            statusButton.setText(onlineCount+"");
-                        }
-                        
-                    } catch (SQLException ex) {
-                        System.err.println("Error fetching onlineCount: " + ex.getMessage());
-                    }
-                    
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
+                UserTasks.displayOnlineUsersCount(statusButton, projectName);
             }
         };
-        
         new Thread(runnable).start();
         
         frame.addWindowListener(new WindowAdapter() {
@@ -295,5 +252,79 @@ public class Chat_Interface {
                 joinButton.setEnabled(true);
             }
         });
+    }
+
+    protected static class UserTasks {
+
+        private static MysqlDataSource ds = new MysqlDataSource();
+        private static Properties props = new Properties();
+        static {
+            PropertiesManager.loadStorefrontProps(props, new JFrame());
+            ds.setServerName("localhost");
+            ds.setPortNumber(3306);
+            ds.setUser(props.getProperty("user"));
+            ds.setPassword(props.getProperty("pass"));
+        }
+
+        //closes all the participant users(including admin), deleteing in the same time the server.
+        public static void closeAdmin(Client client, String ENCODED_MESSAGE, String projectName) {
+            String removeQuery = "DELETE FROM servers.locations WHERE name = ?";
+            try {
+                client.sendMessageToServer(ENCODED_MESSAGE, true);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+            try (Connection connection = ds.getConnection();
+                 PreparedStatement preparedStatement = connection.prepareStatement(removeQuery)) {
+                preparedStatement.setString(1, projectName);
+                preparedStatement.execute();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        //closes just the user that wants to exit, the server will still be online until the admin will exit
+        public static void closeVisitor(JFrame frame, String projectName) {
+            String updateQuery = "UPDATE servers.locations SET onlineCount = onlineCount - 1 WHERE name = ? AND onlineCount > 0";
+
+            try (Connection connection = ds.getConnection();
+                 PreparedStatement psUpdate = connection.prepareStatement(updateQuery)) {
+
+                psUpdate.setString(1, projectName);
+                psUpdate.executeUpdate();
+
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(frame, "An error occurred while updating the online count!", "Error", JOptionPane.ERROR_MESSAGE);
+                throw new RuntimeException(ex);
+            }
+        }
+
+        //displays how many users are there online in the chat server.
+        public static void displayOnlineUsersCount(JLabel statusButton, String projectName) {
+            try {
+                TimeUnit.SECONDS.sleep(2);
+
+                String selectQuery = "SELECT onlineCount FROM servers.locations WHERE name = ?";
+
+                try (Connection connection = ds.getConnection();
+                     PreparedStatement psSelect = connection.prepareStatement(selectQuery)) {
+
+                    psSelect.setString(1, projectName);
+                    ResultSet resultSet = psSelect.executeQuery();
+
+                    if (resultSet.next()) {
+                        int onlineCount = resultSet.getInt(1);
+                        statusButton.setText(onlineCount+"");
+                    }
+
+                } catch (SQLException ex) {
+                    System.err.println("Error fetching onlineCount: " + ex.getMessage());
+                }
+
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 }
