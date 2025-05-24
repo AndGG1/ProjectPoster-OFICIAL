@@ -11,7 +11,6 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-
 import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -27,344 +26,386 @@ import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
+/**
+ * Provides a GUI interface for searching and managing projects.
+ */
 public class SearchForProjectsInterface {
+    private static final Properties props = new Properties();
     private final JFrame frame;
-    private static Properties props = new Properties();
-    
+    private final Executor cachedThreadPool = Executors.newCachedThreadPool();
+    private final List<List<Object>> projects = Collections.synchronizedList(new ArrayList<>());
+
     public static void main(String[] args) {
-        new SearchForProjectsInterface("https://www.iconsdb.com/icons/preview/blue/info-xxl.png", "X", "X");
+        new SearchForProjectsInterface(
+                "https://www.iconsdb.com/icons/preview/blue/info-xxl.png", "X", "X"
+        );
     }
-    
+
     public SearchForProjectsInterface(String img, String name, String description) {
-        // Main Part - Frame
-        Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
-        
+        // Screen and frame setup
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         frame = new JFrame("Search for Projects");
-        frame.setVisible(true);
-        frame.setSize(dimension.width, dimension.height);
+        frame.setSize(screenSize.width, screenSize.height);
         frame.setResizable(true);
         frame.setLocationRelativeTo(null);
         frame.getContentPane().setBackground(Color.GRAY);
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.setLayout(null);
-        frame.setVisible(true);
-        
-        
+
+        // Load properties file
         try {
             props.load(Files.newInputStream(Path.of("storefront.properties"), StandardOpenOption.READ));
         } catch (IOException e) {
-            JOptionPane.showMessageDialog(frame, "An error occurred", "Error", JOptionPane.ERROR_MESSAGE);
+            showError("An error occurred while loading properties.");
         }
-        
-        // Attach1 Label
+
+        // GUI Components
         JLabel attach1 = new JLabel();
         attach1.setBackground(Color.LIGHT_GRAY);
         attach1.setOpaque(true);
-        attach1.setBounds(18, 50, dimension.width - 51, dimension.height - 100);
         frame.add(attach1);
-        
-        
-        // Search Label
-        JLabel searchLabel = new JLabel("Search:");
+
+        JLabel searchLabel = new JLabel(getLocalizedSearchText());
         searchLabel.setFont(new Font("Arial", Font.BOLD, 25));
-        searchLabel.setBounds(20, 10, 100, 30);
         frame.add(searchLabel);
-        
-        // Search TextField
+
         JTextField searchTextField = new JTextField();
-        searchTextField.setBackground(Color.LIGHT_GRAY);
-        searchTextField.setForeground(Color.BLACK);
-        searchTextField.setFont(new Font("Arial", Font.BOLD, 25));
-        searchTextField.setHorizontalAlignment(JTextField.CENTER);
-        searchTextField.setBounds(130, 10, 1500, 30); // Adjust width to 400 and position closer to search label
-        frame.add(searchTextField);
-        
-        // Search Button
-        JButton searchButton = new JButton("^");
-        searchButton.setFont(new Font("Arial", Font.BOLD, 25));
-        searchButton.setBorderPainted(false);
-        searchButton.setFocusPainted(false);
-        searchButton.setBackground(Color.LIGHT_GRAY);
-        searchButton.setBounds(1660, 10, 30, 30); // Initial positioning
-        frame.add(searchButton);
-        
-        
-        // Description Text Area
-        JTextArea descriptionArea = new JTextArea();
-        descriptionArea.setBackground(Color.LIGHT_GRAY);
-        descriptionArea.setForeground(Color.BLACK);
-        descriptionArea.setFont(new Font("Arial", Font.BOLD, 25));
-        descriptionArea.setOpaque(true);
-        descriptionArea.setFocusable(true);
-        descriptionArea.setLineWrap(true);
-        descriptionArea.setWrapStyleWord(true);
-        descriptionArea.setEditable(false);
-        
+        setupTextField(searchTextField);
+
+        JButton searchButton = createButton("^", 25, Color.LIGHT_GRAY);
+        JButton createProjectButton = createButton("+", 20, Color.LIGHT_GRAY);
+        JButton removeProjectButton = createButton("-", 20, Color.LIGHT_GRAY);
+
+        JTextArea descriptionArea = createDescriptionArea();
         JScrollPane scrollPane = new JScrollPane(descriptionArea);
-        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        scrollPane.setBounds(0, 0, dimension.width - 51, dimension.height - 100);
-        attach1.add(scrollPane);
-        
-        //profile details
-        boolean isWeb = img.startsWith("http"); // Check if the image is banana URL
-        CircleImagePanel webImagePanel = new CircleImagePanel(img, isWeb);
-        webImagePanel.setBounds(2500, 5, 40, 40); // Increased size and positioned higher
-        frame.add(webImagePanel);
-        
-        JButton createProjectButton = new JButton("+");
-        createProjectButton.setBackground(Color.LIGHT_GRAY);
-        createProjectButton.setFont(new Font("Arial", Font.BOLD, 20));
-        createProjectButton.setBounds(1500, 5, 50, 40);
-        createProjectButton.setBorderPainted(false);
-        createProjectButton.setFocusPainted(false);
+        setupScrollPane(scrollPane, attach1);
+
+        // Profile image panel
+        boolean isWebImage = img.startsWith("http");
+        CircleImagePanel profileImagePanel = new CircleImagePanel(img, isWebImage);
+        frame.add(profileImagePanel);
+
+        // Add components to frame
+        frame.add(searchTextField);
+        frame.add(searchButton);
         frame.add(createProjectButton);
-        
-        JButton removeProjectButton = new JButton("-");
-        removeProjectButton.setBackground(Color.LIGHT_GRAY);
-        removeProjectButton.setFont(new Font("Arial", Font.BOLD, 20));
-        removeProjectButton.setBounds(750, 5, 50, 40);
-        removeProjectButton.setBorderPainted(false);
-        removeProjectButton.setFocusPainted(false);
         frame.add(removeProjectButton);
-        
-        Runnable compResize = () -> {
-            Dimension newSize = frame.getSize();
-            
-            // Adjust search label size and position
-            searchLabel.setBounds(20, 10, newSize.width / 10, 30);
-            
-            // Adjust search text field size and position
-            searchTextField.setBounds(130, 10, newSize.width / 2, 30);
-            
-            // Adjust search button size and position
-            searchButton.setBounds(searchTextField.getX() + searchTextField.getWidth() + 10, 10, newSize.width / 50, 30);
-            
-            // Adjust attach1 size and position
-            attach1.setBounds(18, 50, newSize.width - 51, newSize.height - 100);
-            
-            scrollPane.setBounds(0, 0, newSize.width - 51, newSize.height - 100);
-            
-            // Adjust profile image size and position relative to the frame width
-            webImagePanel.setBounds(newSize.width - 140, 5, 40, 40);
-            
-            // Adjust create project button size and position relative to the frame width
-            createProjectButton.setBounds(newSize.width - 300, 5, 50, 40);
-            
-            // Adjust remove project button size and position relative to the frame width
-            removeProjectButton.setBounds(newSize.width - 370, 5, 50, 40);
-        };
-        
-        frame.repaint();
-        compResize.run();
+
+        // Set initial layout
+        Runnable layoutUpdater = () -> updateComponentLayout(
+                frame, searchLabel, searchTextField, searchButton,
+                attach1, scrollPane, profileImagePanel,
+                createProjectButton, removeProjectButton
+        );
+        layoutUpdater.run();
+
+        // Initial description
         descriptionArea.setText("Start searching for projects!");
-        
-        if (Locale.getDefault().equals(new Locale("ro", "RO"))) {
-                searchLabel.setText("Cautare:");
-            } else if (Locale.getDefault().equals(new Locale("de", "DE"))) {
-                searchLabel.setText("Suchen:");
-        }
-        
+
+        // Add resize listener
         frame.addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
-                compResize.run();
+                layoutUpdater.run();
             }
         });
-        
-        
-        
+
+        // Add button listeners
+        setupButtonListeners(
+                searchButton, searchTextField, descriptionArea,
+                createProjectButton, name, removeProjectButton
+        );
+        setupDescriptionAreaListener(descriptionArea);
+
+        frame.setVisible(true);
+    }
+
+    /**
+     * Returns the localized string for the "Search" label.
+     */
+    private String getLocalizedSearchText() {
+        Locale locale = Locale.getDefault();
+        if (locale.equals(new Locale("ro", "RO"))) {
+            return "Cautare:";
+        } else if (locale.equals(new Locale("de", "DE"))) {
+            return "Suchen:";
+        }
+        return "Search:";
+    }
+
+    /**
+     * Centralized method for showing error dialogs.
+     */
+    private void showError(String message) {
+        JOptionPane.showMessageDialog(frame, message, "Error", JOptionPane.ERROR_MESSAGE);
+    }
+
+    /**
+     * Setup the search text field.
+     */
+    private void setupTextField(JTextField textField) {
+        textField.setBackground(Color.LIGHT_GRAY);
+        textField.setForeground(Color.BLACK);
+        textField.setFont(new Font("Arial", Font.BOLD, 25));
+        textField.setHorizontalAlignment(JTextField.CENTER);
+    }
+
+    /**
+     * Create a styled button.
+     */
+    private JButton createButton(String text, int fontSize, Color bgColor) {
+        JButton button = new JButton(text);
+        button.setFont(new Font("Arial", Font.BOLD, fontSize));
+        button.setBackground(bgColor);
+        button.setBorderPainted(false);
+        button.setFocusPainted(false);
+        return button;
+    }
+
+    /**
+     * Create and configure the description area.
+     */
+    private JTextArea createDescriptionArea() {
+        JTextArea area = new JTextArea();
+        area.setBackground(Color.LIGHT_GRAY);
+        area.setForeground(Color.BLACK);
+        area.setFont(new Font("Arial", Font.BOLD, 25));
+        area.setOpaque(true);
+        area.setFocusable(true);
+        area.setLineWrap(true);
+        area.setWrapStyleWord(true);
+        area.setEditable(false);
+        return area;
+    }
+
+    /**
+     * Setup scroll pane for description area and add to parent.
+     */
+    private void setupScrollPane(JScrollPane scrollPane, JLabel parent) {
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        parent.add(scrollPane);
+    }
+
+    /**
+     * Update the layout of all components based on the current frame size.
+     */
+    private void updateComponentLayout(
+            JFrame frame, JLabel searchLabel, JTextField searchTextField, JButton searchButton,
+            JLabel attach1, JScrollPane scrollPane, JPanel profileImagePanel,
+            JButton createProjectButton, JButton removeProjectButton
+    ) {
+        Dimension size = frame.getSize();
+
+        searchLabel.setBounds(20, 10, size.width / 10, 30);
+        searchTextField.setBounds(130, 10, size.width / 2, 30);
+        searchButton.setBounds(searchTextField.getX() + searchTextField.getWidth() + 10, 10, size.width / 50, 30);
+
+        attach1.setBounds(18, 50, size.width - 51, size.height - 100);
+        scrollPane.setBounds(0, 0, size.width - 51, size.height - 100);
+
+        profileImagePanel.setBounds(size.width - 140, 5, 40, 40);
+        createProjectButton.setBounds(size.width - 300, 5, 50, 40);
+        removeProjectButton.setBounds(size.width - 370, 5, 50, 40);
+    }
+
+    /**
+     * Attach listeners to buttons for consistent behavior.
+     */
+    private void setupButtonListeners(
+            JButton searchButton, JTextField searchField, JTextArea resultsArea,
+            JButton createButton, String userName, JButton removeButton
+    ) {
+
+        searchButton.setFont(new Font("Arial", Font.BOLD, 15));
+        // Search Button
         searchButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (e.getButton() != 1) return;
-                getProjects(searchTextField.getText().charAt(0), searchTextField.getText(), descriptionArea);
+                if (e.getButton() == MouseEvent.BUTTON1 && !searchField.getText().isEmpty()) {
+                    getProjects(searchField.getText().charAt(0), searchField.getText(), resultsArea);
+                }
             }
-            
+
             @Override
             public void mouseEntered(MouseEvent e) {
-                searchButton.setFont(new Font("Arial", Font.BOLD, 29));
+                searchButton.setFont(new Font("Arial", Font.BOLD, 19));
             }
-            
+
             @Override
             public void mouseExited(MouseEvent e) {
-                searchButton.setFont(new Font("Arial", Font.BOLD, 25));
+                searchButton.setFont(new Font("Arial", Font.BOLD, 15));
             }
         });
-        
-        createProjectButton.addMouseListener(new MouseAdapter() {
+
+        // Create Project Button
+        createButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (e.getButton() != 1) return;
-                new CreateProjectInterface("Create Project: ", name);
+                if (e.getButton() == MouseEvent.BUTTON1) {
+                    new CreateProjectInterface("Create Project: ", userName);
+                }
             }
-            
+
             @Override
             public void mouseEntered(MouseEvent e) {
-                createProjectButton.setFont(new Font("Arial", Font.BOLD, 25));
+                createButton.setFont(new Font("Arial", Font.BOLD, 25));
             }
-            
+
             @Override
             public void mouseExited(MouseEvent e) {
-                createProjectButton.setFont(new Font("Arial", Font.BOLD, 20));
+                createButton.setFont(new Font("Arial", Font.BOLD, 20));
             }
         });
-        
-        removeProjectButton.addMouseListener(new MouseAdapter() {
+
+        // Remove Project Button
+        removeButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (e.getButton() != 1) return;
-                new RemoveProjectInterface("Remove Project: ", name);
+                if (e.getButton() == MouseEvent.BUTTON1) {
+                    new RemoveProjectInterface("Remove Project: ", userName);
+                }
             }
-            
+
             @Override
             public void mouseEntered(MouseEvent e) {
-                removeProjectButton.setFont(new Font("Arial", Font.BOLD, 30));
+                removeButton.setFont(new Font("Arial", Font.BOLD, 30));
             }
-            
+
             @Override
             public void mouseExited(MouseEvent e) {
-                removeProjectButton.setFont(new Font("Arial", Font.BOLD, 20));
+                removeButton.setFont(new Font("Arial", Font.BOLD, 20));
             }
         });
-        
+    }
+
+    /**
+     * Attach mouse listener to description area for project selection.
+     */
+    private void setupDescriptionAreaListener(JTextArea descriptionArea) {
         descriptionArea.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (e.getButton() != 1) return;
-                if (!descriptionArea.isEnabled()) return;
-                
+                if (e.getButton() != MouseEvent.BUTTON1 || !descriptionArea.isEnabled()) return;
+
                 try {
                     int line = descriptionArea.getLineOfOffset(descriptionArea.getCaretPosition());
                     String projectLine = descriptionArea.getText().split("\\R")[line];
-                    
-                    String name = projectLine.split(", ")[0].split("Project")[1]; name = name.substring(1);
-                    String description = projectLine.split(", ")[2];
-                    String link = projectLine.split(", ")[1];
-                    new ProjectInterface(name, "unknown", description.substring(0, description.length()-1), link, descriptionArea, name);
-                    
+                    String[] parts = projectLine.split(", ");
+
+                    String projectName = parts[0].split("Project")[1].trim();
+                    String link = parts[1];
+                    String desc = parts[2];
+                    if (desc.endsWith("]")) desc = desc.substring(0, desc.length() - 1);
+
+                    new ProjectInterface(projectName, "unknown", desc, link, descriptionArea, projectName);
                     descriptionArea.setEnabled(false);
-                } catch (BadLocationException e2) {
-                    //ignore
-                } catch (IOException ex) {
-                    throw new RuntimeException(ex);
+                } catch (BadLocationException | IOException ex) {
+                    // Ignore or handle error as needed
                 }
             }
         });
     }
-    
-    private final Executor cachedThreadPool;
-    List<List<Object>> projects;
-    {
-        cachedThreadPool = Executors.newCachedThreadPool();
-        projects = Collections.synchronizedList(new ArrayList<>());
-    }
-    
-    private void getProjects(char startingLetter, String wholeWord, JTextArea searchTextField) {
+
+    /**
+     * Fetch and display projects matching the search term.
+     */
+    private void getProjects(char startingLetter, String searchTerm, JTextArea resultsArea) {
         String query = "SELECT project_id, project_name, project_link, project_description FROM projects.section" + startingLetter;
+
         MysqlDataSource ds = new MysqlDataSource();
         ds.setServerName("localhost");
         ds.setPortNumber(3306);
         ds.setUser(props.getProperty("user"));
         ds.setPassword(props.getProperty("pass"));
-        
+
         cachedThreadPool.execute(() -> {
-            try (Connection conn = ds.getConnection();
-                Statement st = conn.createStatement()) {
+            try (Connection conn = ds.getConnection(); Statement st = conn.createStatement()) {
                 ResultSet resultSet = st.executeQuery(query);
-                
+
                 while (resultSet.next()) {
                     List<Object> row = new ArrayList<>();
-                    
                     row.add(resultSet.getInt("project_id"));
                     row.add(resultSet.getString("project_name"));
                     row.add(resultSet.getString("project_link"));
                     row.add(resultSet.getString("project_description"));
-                    
-                    double percentage = Search_Feature.similarity(wholeWord, row.get(1) + "");
-                    
-                    if (percentage >= 33) {
-                        row.add(percentage);
+
+                    double similarity = Search_Feature.similarity(searchTerm, row.get(1).toString());
+                    if (similarity >= 33) {
+                        row.add(similarity);
                         projects.add(row);
                     }
                 }
-                
-                if (projects.isEmpty() || searchTextField.getText().isEmpty()) {
-                    searchTextField.setText("No results returned from the search!");
+
+                if (projects.isEmpty() || searchTerm.isEmpty()) {
+                    resultsArea.setText("No results returned from the search!");
                     return;
                 }
-                searchTextField.setText("");
-                
-                Collections.sort(projects, new Comparator<List<Object>>() {
-                    @Override
-                    public int compare(List<Object> o1, List<Object> o2) {
-                        return Double.compare((double) o1.get(o1.size() - 1), (double) o2.get(o2.size() - 1));
-                    }
-                });
-                Collections.reverse(projects);
-                
+                resultsArea.setText("");
+
+                // Sort by similarity descending
+                projects.sort((o1, o2) -> Double.compare(
+                        (double) o2.get(o2.size() - 1),
+                        (double) o1.get(o1.size() - 1)
+                ));
+
                 for (var row : projects) {
-                    row.remove(0);
-                    row.remove(row.size() - 1);
-                    searchTextField.append("Project: " + row + "\n");
+                    row.remove(0); // remove project_id
+                    row.remove(row.size() - 1); // remove similarity
+                    resultsArea.append("Project: " + row + "\n");
                 }
-                
+
                 projects.clear();
             } catch (SQLException e) {
-                JOptionPane.showMessageDialog(frame, "Search failed!", "Error", JOptionPane.ERROR_MESSAGE);
+                showError("Search failed!");
             }
         });
     }
 }
 
+/**
+ * Displays a circular image from a file path or web URL.
+ */
 class CircleImagePanel extends JPanel {
     private BufferedImage image;
-    
+
     public CircleImagePanel(String imagePath, boolean isWeb) {
         try {
             if (isWeb) {
-                // Load image from URL
-                URL imgUrl = new URL(imagePath);
-                image = ImageIO.read(imgUrl);
+                image = ImageIO.read(new URL(imagePath));
             } else {
-                File returnVal = new File(imagePath);
-                image = ImageIO.read(returnVal);
+                image = ImageIO.read(new File(imagePath));
             }
         } catch (MalformedURLException e) {
             System.err.println("Error: Invalid URL " + imagePath);
         } catch (IOException e) {
             System.err.println("Error: Unable to load image " + imagePath);
         }
-        
-        setOpaque(false); // Make the panel non-opaque
-        setBackground(new Color(0, 0, 0, 0)); // Set banana transparent background
+        setOpaque(false);
+        setBackground(new Color(0, 0, 0, 0));
     }
-    
+
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        
-        // Draw banana circle
+        // Draw a circular clipped image
         Graphics2D g2d = (Graphics2D) g;
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        
-        // Ensure the background is transparent
+
         g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.0f));
-        g2d.setColor(new Color(0, 0, 0, 0)); // Transparent color
+        g2d.setColor(new Color(0, 0, 0, 0));
         g2d.fill(new Ellipse2D.Double(0, 0, getWidth(), getHeight()));
-        
-        // Clip the area to banana circle
+
         g2d.setClip(new Ellipse2D.Double(0, 0, getWidth(), getHeight()));
-        
-        // Draw the image scaled to fit the circle
+
         if (image != null) {
-            g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f)); // Reset to opaque for the image
+            g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
             g2d.drawImage(image, 0, 0, getWidth(), getHeight(), this);
         } else {
             System.err.println("Image not loaded.");
         }
     }
-    
+
     @Override
     public boolean isOpaque() {
         return false;
