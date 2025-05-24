@@ -16,99 +16,110 @@ import java.util.List;
 import java.util.Properties;
 
 public class CreateProjectInterface {
-    private JTextField inputField;
-    private JLabel statusLabel;
-    
-    // Changed these to instance variables to reset state
-    private final String[] questions = {"NAME", "DESCRIPTION", "LINK"};  // changed from static to final
-    private final List<String> givenData = new ArrayList<>();  // changed from static to final
-    private int currentQuestionIndex = 0;  // changed from static to instance variable
+
+    private final String[] questions = {"NAME", "DESCRIPTION", "LINK"};
+    private final List<String> givenData = new ArrayList<>();
+    private int currentQuestionIndex = 0;
     private JFrame frame;
-    private static Properties props = new Properties();
-    
+    private JTextField inputField;
+    private static final Properties props = new Properties();
+
     public CreateProjectInterface(String title, String owner) {
-        // Reset the state for each new instance
-        givenData.clear();  // added to reset givenData
-        currentQuestionIndex = 0;  // added to reset currentQuestionIndex
-        
+        initializeProperties();
+        setupUI(title, owner);
+    }
+
+    private void initializeProperties() {
+        try {
+            props.load(Files.newInputStream(Path.of("storefront.properties"), StandardOpenOption.READ));
+        } catch (IOException e) {
+            showError("Failed to load properties file.");
+        }
+    }
+
+    private void setupUI(String title, String owner) {
         frame = new JFrame(title);
         frame.setLocationRelativeTo(null);
         frame.setResizable(false);
         frame.setSize(350, 150);
-        
-        final var path = Path.of("users.properties");
-        try {
-            props.load(Files.newInputStream(Path.of("storefront.properties"), StandardOpenOption.READ));
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(frame, "An error occurred", "Error", JOptionPane.ERROR_MESSAGE);
-        }
-        
+
         inputField = new JTextField(20);
         JButton nextButton = new JButton("Next");
-        statusLabel = new JLabel("");
-        
-        nextButton.addActionListener(e -> {
-            if (currentQuestionIndex == 0 && inputField.getText().length() < 3) {
-                JOptionPane.showMessageDialog(frame, "Name of Project too short",
-                        "Invalid Project Name", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            if (currentQuestionIndex == 1 && inputField.getText().isEmpty()) {
-                JOptionPane.showMessageDialog(frame, "Please insert description!",
-                        "Empty Description", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            if (currentQuestionIndex == 2 && !EXTRA_Links.checkAbilityToCreate(inputField.getText())) {
-                JOptionPane.showMessageDialog(frame, "Please enter a valid link!",
-                        "Invalid URL", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            
-            givenData.add(inputField.getText());
-            inputField.setText("");
-            currentQuestionIndex++;
-            if (currentQuestionIndex < questions.length) {
-                frame.setTitle(questions[currentQuestionIndex]);
-            } else {
-                handleProjectData(givenData, owner);
-                frame.dispose();  // Dispose the frame after handling project data
-            }
-        });
-        
+        nextButton.addActionListener(e -> processInput(owner));
+
         JPanel panel = new JPanel();
         panel.add(new JLabel("Input:"));
         panel.add(inputField);
         panel.add(nextButton);
-        panel.add(statusLabel);
-        
+
         frame.getContentPane().add(panel);
         frame.setVisible(true);
     }
-    
-    public void handleProjectData(List<String> data, String owner) {
-        String name = data.get(0);
-        String description = data.get(1);
-        String link = data.get(2);
-        
+
+    private void processInput(String owner) {
+        String input = inputField.getText();
+
+        if (isInvalidInput(input)) return;
+
+        givenData.add(input);
+        inputField.setText("");
+        currentQuestionIndex++;
+
+        if (currentQuestionIndex < questions.length) {
+            frame.setTitle(questions[currentQuestionIndex]);
+        } else {
+            saveProjectData(owner);
+            frame.dispose();
+        }
+    }
+
+    private boolean isInvalidInput(String input) {
+        if (currentQuestionIndex == 0 && input.length() < 3) {
+            showError("Project name is too short!");
+            return true;
+        }
+        if (currentQuestionIndex == 1 && input.isEmpty()) {
+            showError("Please insert a description!");
+            return true;
+        }
+        if (currentQuestionIndex == 2 && !EXTRA_Links.checkAbilityToCreate(input)) {
+            showError("Invalid URL! Please enter a valid link.");
+            return true;
+        }
+        return false;
+    }
+
+    private void saveProjectData(String owner) {
+        String name = givenData.get(0);
+        String description = givenData.get(1);
+        String link = givenData.get(2);
+
+        try (Connection conn = getDatabaseConnection()) {
+            String query = "INSERT INTO projects.section" + name.charAt(0) +
+                    " (project_name, project_link, project_description, project_owner) VALUES (?, ?, ?, ?)";
+
+            try (PreparedStatement ps = conn.prepareStatement(query)) {
+                ps.setString(1, name);
+                ps.setString(2, link);
+                ps.setString(3, description);
+                ps.setString(4, owner);
+                ps.executeUpdate();
+            }
+        } catch (SQLException e) {
+            showError("Database error: " + e.getMessage());
+        }
+    }
+
+    private Connection getDatabaseConnection() throws SQLException {
         var ds = new MysqlDataSource();
         ds.setServerName("localhost");
         ds.setPortNumber(3306);
         ds.setUser(props.getProperty("user"));
         ds.setPassword(props.getProperty("pass"));
-        
-        String query = "INSERT INTO projects.section" + name.charAt(0) + " (project_name, project_link, project_description, project_owner) VALUES (?, ?, ?, ?)";
-        try (Connection conn = ds.getConnection()) {
-            PreparedStatement ps = conn.prepareStatement(query);
-            ps.setString(1, name);
-            ps.setString(2, link);
-            ps.setString(3, description);
-            ps.setString(4, owner);
-            ps.addBatch();
-            
-            ps.executeBatch();
-            ps.clearBatch();
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(frame, "An error occurred", "Error", JOptionPane.ERROR_MESSAGE);
-        }
+        return ds.getConnection();
+    }
+
+    private void showError(String message) {
+        JOptionPane.showMessageDialog(frame, message, "Error", JOptionPane.ERROR_MESSAGE);
     }
 }

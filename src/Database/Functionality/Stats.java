@@ -1,7 +1,9 @@
 package Database.Functionality;
 
 import Database.Functionality.Startup.Startup_Sign;
+import Database.Initialization.ChatDatabase_Initialization;
 import Database.Initialization.Database_Initialization;
+import Database.Initialization.ProjectDatabase_Initialization;
 import com.mysql.cj.jdbc.MysqlDataSource;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Persistence;
@@ -17,42 +19,65 @@ import java.util.Properties;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
-public class Stats {
-    //TODO: Upgrade (more features)
-    private static Scanner scanner = null;
-    public static void main(String[] args) throws SQLException, IOException, InterruptedException {
-        scanner = new Scanner(System.in);
-        
-        while (scanner.hasNextLine()) {
-            String line = scanner.nextLine();
-            if (line.contains("INDEX: ") || line.contains("POS: ")) {
-                System.out.println(line.split(": ")[1] + ": " + getIndex(line.split(": ")[1]));
-            } else if (line.contains("SHOW ALL: ") || line.contains("USERS: ") || line.contains("PEEK ALL: ")) {
-                showStats(Integer.parseInt(line.split(": ")[1]));
-            } else if (line.contains("DELETE ALL: ")) {
-                if (line.split(": ")[1].split(" - ")[0].equals(props.getProperty("pass")) && line.split(": ")[1].contains(" - ")) {
-                    deleteAll(Integer.parseInt(props.get("id")+""), Boolean.parseBoolean(line.split(" - ")[1]));
-                    props2.forEach((name, key) -> {
-                        if (key.equals(Integer.parseInt(props.get("id")+""))) props2.remove(name);
-                    });
-                }
-            } else if (line.contains("SHOW USER: ")) {
-                String[] parts = line.replace("SHOW USER: ", "").split(" - ");
-                
-                boolean shouldDelete = Boolean.parseBoolean(parts[0]);
-                boolean shouldShow = Boolean.parseBoolean(parts[1]);
-                String[] names = parts[2].split(", ");
-                showUser(shouldDelete, shouldShow, names);
-                
-            } else if (line.equals("MAINTAIN") || line.contains("MANAGE") || line.contains("KEEP TRACK")) {
-                keepTrack();
-            } else if (line.contains("MAINTAIN USERS")) {
+    public class Stats {
+        // TODO: Upgrade (more features)
+        private static Scanner scanner = null;
+
+        public static void main(String[] args) throws SQLException, IOException, InterruptedException {
+            scanner = new Scanner(System.in);
+
+            while (scanner.hasNextLine()) {
+                String line = scanner.nextLine();
+
+                if (line.contains("INDEX: ") || line.contains("POS: ")) {
+                    String key = line.split(": ")[1];
+                    System.out.println(key + ": " + getIndex(key));
+
+                } else if (line.contains("SHOW ALL: ") || line.contains("USERS: ") || line.contains("PEEK ALL: ")) {
+                    int id = Integer.parseInt(line.split(": ")[1]);
+                    showStats(id);
+
+                } else if (line.contains("DELETE ALL: ")) {
+                    String[] parts = line.split(": ")[1].split(" - ");
+
+                    if (parts[0].equals(props.getProperty("pass")) && line.split(": ")[1].contains(" - ")) {
+                        int id = Integer.parseInt(props.get("id") + "");
+                        boolean flag = Boolean.parseBoolean(parts[1]);
+                        deleteAll(id, flag);
+
+                        props2.forEach((name, key) -> {
+                            if (key.equals(id)) props2.remove(name);
+                        });
+                    }
+
+                } else if (line.contains("SHOW USER: ")) {
+                    String[] parts = line.replace("SHOW USER: ", "").split(" - ");
+
+                    boolean shouldDelete = Boolean.parseBoolean(parts[0]);
+                    boolean shouldShow = Boolean.parseBoolean(parts[1]);
+                    String[] names = parts[2].split(", ");
+
+                    showUser(shouldDelete, shouldShow, names);
+
+                } else if (line.equals("MAINTAIN") || line.contains("MANAGE") || line.contains("KEEP TRACK")) {
+                    keepTrack();
+
+                } else if (line.contains("MAINTAIN USERS")) {
                     keepTrackOfUsersJoining(Path.of("users.properties"));
-            } else if (line.contains("MONITOR DATABASE")) {
-                Database_Initialization.main(new String[] {});
-            } else if (line.contains("CLOSE")) break;
+
+                } else if (line.contains("MONITOR DATABASE")) {
+                    Database_Initialization.main(new String[] {});
+
+                } else if (line.contains("CLOSE")) {
+                    break;
+
+                } else if (line.equals("INIT DB")) {
+                    Database_Initialization.main(new String[] {});
+                    ChatDatabase_Initialization.main(new String[] {});
+                    ProjectDatabase_Initialization.main(new String[] {});
+                }
+            }
         }
-    }
     
     static MysqlDataSource ds;
     static int id;
