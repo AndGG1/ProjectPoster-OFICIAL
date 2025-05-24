@@ -16,7 +16,7 @@ public class Test {
             EXTRA_Links.getLink("https://www.iconsdb.com/icons/preview/blue/info-xxl.png");
             
             Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
-            if (dimension.width >= 500 && dimension.height >= 500) {
+            if (dimension.width >= 1000 && dimension.height >= 1000) {
                 new SignInView();
             } else JOptionPane.showMessageDialog(new JFrame(), "Your screen is too small for this application! We are sorry!", "Error", JOptionPane.ERROR_MESSAGE);
         } catch (Exception e) {
